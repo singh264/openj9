@@ -1804,6 +1804,37 @@ bool J9::Options::preProcessCodeCache(J9JavaVM *vm, J9JITConfig *jitConfig)
       return true;
    }
 
+void J9::Options::preProcessSamplingExpirationTime(J9JavaVM *vm)
+   {
+   char *samplingOption = "-XsamplingExpirationTime";
+   int32_t argIndex = FIND_ARG_IN_VMARGS(EXACT_MEMORY_MATCH, samplingOption, 0);
+   if (argIndex >= 0)
+      {
+      UDATA expirationTime;
+      IDATA ret = GET_INTEGER_VALUE(argIndex, samplingOption, expirationTime);
+      if (ret == OPTION_OK)
+         _samplingThreadExpirationTime = expirationTime;
+      }
+   }
+
+void J9::Options::preProcessCompilationThreads(J9JavaVM *vm, J9JITConfig *jitConfig)
+   {
+   TR::CompilationInfo *compInfo = getCompilationInfo(jitConfig);
+   char *compThreadsOption = "-XcompilationThreads";
+   int32_t argIndex = FIND_ARG_IN_VMARGS(EXACT_MEMORY_MATCH, compThreadsOption, 0);
+   if (argIndex >= 0)
+      {
+      UDATA numCompThreads;
+      IDATA ret = GET_INTEGER_VALUE(argIndex, compThreadsOption, numCompThreads);
+
+      if (ret == OPTION_OK && numCompThreads > 0)
+         {
+         _numUsableCompilationThreads = numCompThreads;
+         compInfo->updateNumUsableCompThreads(_numUsableCompilationThreads);
+         }
+      }
+   }
+
 void J9::Options::preProcessTLHPrefetch(J9JavaVM *vm)
    {
 #if defined(TR_HOST_X86) || defined(TR_HOST_POWER) || defined(TR_HOST_S390) || defined(TR_HOST_ARM64)
@@ -2045,29 +2076,9 @@ J9::Options::fePreProcess(void * base)
          return false;
       }
 
-   char *samplingOption = "-XsamplingExpirationTime";
-   int32_t argIndex = FIND_ARG_IN_VMARGS(EXACT_MEMORY_MATCH, samplingOption, 0);
-   if (argIndex >= 0)
-      {
-      UDATA expirationTime;
-      IDATA ret = GET_INTEGER_VALUE(argIndex, samplingOption, expirationTime);
-      if (ret == OPTION_OK)
-         _samplingThreadExpirationTime = expirationTime;
-      }
+   preProcessSamplingExpirationTime(vm);
 
-   char *compThreadsOption = "-XcompilationThreads";
-   argIndex = FIND_ARG_IN_VMARGS(EXACT_MEMORY_MATCH, compThreadsOption, 0);
-   if (argIndex >= 0)
-      {
-      UDATA numCompThreads;
-      IDATA ret = GET_INTEGER_VALUE(argIndex, compThreadsOption, numCompThreads);
-
-      if (ret == OPTION_OK && numCompThreads > 0)
-         {
-         _numUsableCompilationThreads = numCompThreads;
-         compInfo->updateNumUsableCompThreads(_numUsableCompilationThreads);
-         }
-      }
+   preProcessCompilationThreads(vm, jitConfig);
 
    preProcessTLHPrefetch(vm);
 
@@ -2154,7 +2165,7 @@ J9::Options::fePreProcess(void * base)
       {
       char *deterministicOption = "-XX:deterministic=";
       const UDATA MAX_DETERMINISTIC_MODE = 9; // only levels 0-9 are allowed
-      argIndex = FIND_ARG_IN_VMARGS(EXACT_MEMORY_MATCH, deterministicOption, 0);
+      int32_t argIndex = FIND_ARG_IN_VMARGS(EXACT_MEMORY_MATCH, deterministicOption, 0);
       if (argIndex >= 0)
          {
          UDATA deterministicMode;
