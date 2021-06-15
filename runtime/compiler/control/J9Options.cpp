@@ -1200,7 +1200,7 @@ static bool JITServerParseCommonOptions(J9JavaVM *vm, TR::CompilationInfo *compI
    }
 #endif /* defined(J9VM_OPT_JITSERVER) */
 
-void J9::Options::preProcessMmfParameters(J9JavaVM *vm, J9JITConfig *jitConfig)
+void J9::Options::preProcessMmf(J9JavaVM *vm, J9JITConfig *jitConfig)
    {
    J9MemoryManagerFunctions * mmf = vm->memoryManagerFunctions;
 #if defined(J9VM_GC_HEAP_CARD_TABLE)
@@ -2031,7 +2031,7 @@ J9::Options::fePreProcess(void * base)
    TR::Compiler->target.setNumberOfProcessors(numProc);
    TR::Compiler->relocatableTarget.setNumberOfProcessors(numProc);
 
-   preProcessMmfParameters(vm, jitConfig);
+   preProcessMmf(vm, jitConfig);
 
    if (FIND_ARG_IN_VMARGS(EXACT_MATCH, "-Xnoclassgc", 0) >= 0)
       self()->setOption(TR_NoClassGC);

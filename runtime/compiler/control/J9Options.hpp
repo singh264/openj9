@@ -355,7 +355,7 @@ class OMR_EXTENSIBLE Options : public OMR::OptionsConnector
    static char *inlinefileOption(char *option, void *, TR::OptionTable *entry);
    static char *limitfileOption(char *option, void *, TR::OptionTable *entry);
    static char *versionOption(char *option, void *, TR::OptionTable *entry);
-   void preProcessMmfParameters(J9JavaVM *vm, J9JITConfig *jitConfig);
+   void preProcessMmf(J9JavaVM *vm, J9JITConfig *jitConfig);
    void preProcessMode(J9JavaVM *vm, J9JITConfig *jitConfig);
    void preProcessJniAccelerator(J9JavaVM *vm);
    bool preProcessCodeCache(J9JavaVM *vm, J9JITConfig *jitConfig);
