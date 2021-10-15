@@ -195,11 +195,11 @@ class CompilationInfoPerThreadBase
 #endif
 
    static void processSamplingJProfiling(CompilationInfoPerThreadBase *compilationInfo, CompileParameters *compileParameters, TR::IlGeneratorMethodDetails &methodDetails, TR_J9VMBase *vm, TR::Options *&options);
-   static void tweakAotLoadCompilationStrategy(CompilationInfoPerThreadBase *compilationInfo, CompileParameters *compileParameters, TR::IlGeneratorMethodDetails &methodDetails, TR_J9VMBase *vm, TR::Options *&options, bool &reducedWarm);
+   static void tweakNonAotLoadCompilationStrategy(CompilationInfoPerThreadBase *compilationInfo, CompileParameters *compileParameters, TR::IlGeneratorMethodDetails &methodDetails, TR_J9VMBase *vm, TR::Options *&options, bool &reducedWarm);
    static void adjustOptionsForAotCompilation(bool isAotCompilationReUpgradedToWarm, TR_J9VMBase *vm, TR::Options *&options);
    static bool aotCompilationReUpgradedToWarm(CompilationInfoPerThreadBase *compilationInfo, CompileParameters *compileParameters, TR_OpaqueMethodBlock *method);
-   static void processNonOutOfProcessComp(CompilationInfoPerThreadBase *compilationInfo, TR_ResolvedMethod *compilee, CompileParameters *compileParameters, TR_FilterBST *filterInfo, TR::IlGeneratorMethodDetails &methodDetails, TR::Options *&options, bool &reducedWarm, TR_J9VMBase *vm);
-   static void processOutOfProcessComp(CompilationInfoPerThreadBase *compilationInfo, CompileParameters *compileParameters, TR_J9VMBase *vm, TR::Options *&options);
+   static void initializeNonOutOfProcessComp(CompilationInfoPerThreadBase *compilationInfo, TR_ResolvedMethod *compilee, CompileParameters *compileParameters, TR_FilterBST *filterInfo, TR::IlGeneratorMethodDetails &methodDetails, TR::Options *&options, bool &reducedWarm, TR_J9VMBase *vm);
+   static void initializeOutOfProcessComp(CompilationInfoPerThreadBase *compilationInfo, CompileParameters *compileParameters, TR_J9VMBase *vm, TR::Options *&options);
    static bool isOutOfProcessCompReq(CompilationInfoPerThreadBase *compilationInfo);
    static bool isCodeOrDataCacheFull(CompilationInfoPerThreadBase *compilationInfo, CompileParameters *compileParameters);
    static bool isRestrictedMethod(CompilationInfoPerThreadBase *compilationInfo, TR_ResolvedMethod *compilee, CompileParameters *compileParameters, TR_FilterBST *&filterInfo, TR_OpaqueMethodBlock *method);
