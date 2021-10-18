@@ -28,6 +28,7 @@
 #endif /* defined(J9VM_OPT_JITSERVER) */
 #include <ctype.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include "jitprotos.h"
 #include "j2sever.h"
 #include "j9.h"
@@ -1871,6 +1872,7 @@ void J9::Options::preProcessCompilationThreads(J9JavaVM *vm, J9JITConfig *jitCon
 
       if (ret == OPTION_OK && numCompThreads > 0)
          {
+         fprintf(stderr, "preProcessCompilationThreads numCompThreads %u %d %ld.\n", numCompThreads, numCompThreads, numCompThreads);
          _numUsableCompilationThreads = numCompThreads;
          compInfo->updateNumUsableCompThreads(_numUsableCompilationThreads);
          }

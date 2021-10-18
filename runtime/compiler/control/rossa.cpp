@@ -1545,6 +1545,8 @@ onLoadInternal(
 
    compInfo->updateNumUsableCompThreads(TR::Options::_numUsableCompilationThreads);
 
+   fprintf(stderr, "onLoadInternal TR::Options::_numUsableCompilationThreads %u %d %ld.\n", TR::Options::_numUsableCompilationThreads, TR::Options::_numUsableCompilationThreads, TR::Options::_numUsableCompilationThreads);
+
    if (!compInfo->allocateCompilationThreads(TR::Options::_numUsableCompilationThreads))
       {
       fprintf(stderr, "onLoadInternal: Failed to set up %d compilation threads\n", TR::Options::_numUsableCompilationThreads);
