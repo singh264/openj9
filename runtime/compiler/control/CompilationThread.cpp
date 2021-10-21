@@ -3733,6 +3733,7 @@ IDATA J9THREAD_PROC protectedCompilationThreadProc(J9PortLibrary *, TR::Compilat
       {
        TR_VerboseLog::writeLineLocked(TR_Vlog_PERF,"Time spent in compilation thread =%u ms",
           (unsigned)(j9thread_get_self_cpu_time(j9thread_self())/1000000));
+      TR_VerboseLog::writeLineLocked(TR_Vlog_PERF,"Stopping compilation thread, vmThread pointer %p, thread ID %d", compThread, compInfoPT->getCompThreadId());
       }
 
 #ifdef J9VM_OPT_JAVA_OFFLOAD_SUPPORT
