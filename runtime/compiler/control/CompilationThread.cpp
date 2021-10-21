@@ -2602,7 +2602,7 @@ int32_t *TR::CompilationInfo::_compThreadActivationThresholdsonStarvation = NULL
 
 void TR::CompilationInfo::updateNumUsableCompThreads(int32_t &numUsableCompThreads)
    {
-   fprintf(stderr, "updateNumUsableCompThreads numUsableCompThreads %u %d %ld.\n", numUsableCompThreads, numUsableCompThreads, numUsableCompThreads);
+   // fprintf(stderr, "updateNumUsableCompThreads numUsableCompThreads %u %d %ld.\n", numUsableCompThreads, numUsableCompThreads, numUsableCompThreads);
 #if defined(J9VM_OPT_JITSERVER)
    if (getPersistentInfo()->getRemoteCompilationMode() == JITServer::SERVER)
       {
@@ -2818,7 +2818,7 @@ TR::CompilationInfo::startCompilationThread(int32_t priority, int32_t threadId, 
    //_methodQueue = NULL; This is initialized when compInfo is created
    debugPrint("\t\tstarting compilation thread\n");
 
-   fprintf(stderr, "\t\tstarting compilation thread\n");
+   // fprintf(stderr, "\t\tstarting compilation thread\n");
 
    if (vm->internalVMFunctions->createThreadWithCategory(&compInfoPT->_osThread,
                                                          TR::Options::_stackSize << 10, // stack size in kb
@@ -3565,8 +3565,8 @@ IDATA J9THREAD_PROC compilationThreadProc(void *entryarg)
          {
          TR_VerboseLog::writeLineLocked(TR_Vlog_INFO,"t=%6u Created compThread %d as ACTIVE",
                    (uint32_t)compInfo->getPersistentInfo()->getElapsedTime(), compInfoPT->getCompThreadId());
-         fprintf(stderr, "t=%6u Created compThread %d as ACTIVE",
-                  (uint32_t)compInfo->getPersistentInfo()->getElapsedTime(), compInfoPT->getCompThreadId());
+         // fprintf(stderr, "t=%6u Created compThread %d as ACTIVE",
+         //          (uint32_t)compInfo->getPersistentInfo()->getElapsedTime(), compInfoPT->getCompThreadId());
          }
       }
    else // all other compilation threads should start as suspended
@@ -3576,8 +3576,8 @@ IDATA J9THREAD_PROC compilationThreadProc(void *entryarg)
          {
          TR_VerboseLog::writeLineLocked(TR_Vlog_INFO,"t=%6u Created compThread %d as SUSPENDED",
                    (uint32_t)compInfo->getPersistentInfo()->getElapsedTime(), compInfoPT->getCompThreadId());
-         fprintf(stderr, "t=%6u Created compThread %d as SUSPENDED",
-                  (uint32_t)compInfo->getPersistentInfo()->getElapsedTime(), compInfoPT->getCompThreadId());
+         // fprintf(stderr, "t=%6u Created compThread %d as SUSPENDED",
+         //          (uint32_t)compInfo->getPersistentInfo()->getElapsedTime(), compInfoPT->getCompThreadId());
          }
       }
    compInfo->releaseCompMonitor(compThread);
@@ -3610,16 +3610,16 @@ IDATA J9THREAD_PROC compilationThreadProc(void *entryarg)
       compInfoPT->setCompilationThreadState(COMPTHREAD_STOPPED);
       compInfo->getCompilationMonitor()->notify();
 
-      fprintf(stderr, "t=%6u Created compThread %d as COMPTHREAD_SIGNAL_TERMINATE",
-         (uint32_t)compInfo->getPersistentInfo()->getElapsedTime(), compInfoPT->getCompThreadId());
+      // fprintf(stderr, "t=%6u Created compThread %d as COMPTHREAD_SIGNAL_TERMINATE",
+      //    (uint32_t)compInfo->getPersistentInfo()->getElapsedTime(), compInfoPT->getCompThreadId());
 
       j9thread_exit((J9ThreadMonitor*)((TR::Monitor *)compInfo->getCompilationMonitor())->getVMMonitor());
 
       return 0; // unreachable
       }
 
-   fprintf(stderr, "t=%6u Created compThread %d as ",
-      (uint32_t)compInfo->getPersistentInfo()->getElapsedTime(), compInfoPT->getCompThreadId());
+   // fprintf(stderr, "t=%6u Created compThread %d as ",
+   //    (uint32_t)compInfo->getPersistentInfo()->getElapsedTime(), compInfoPT->getCompThreadId());
 
    PORT_ACCESS_FROM_VMC(compThread);
    IDATA result;
@@ -3744,11 +3744,12 @@ IDATA J9THREAD_PROC protectedCompilationThreadProc(J9PortLibrary *, TR::Compilat
       {
        TR_VerboseLog::writeLineLocked(TR_Vlog_PERF,"Time spent in compilation thread =%u ms",
           (unsigned)(j9thread_get_self_cpu_time(j9thread_self())/1000000));
-      fprintf(stderr, "Time spent in compilation thread =%u ms",
-              (unsigned)(j9thread_get_self_cpu_time(j9thread_self())/1000000));
+      TR_VerboseLog::writeLineLocked(TR_Vlog_PERF,"Stopping compilation thread, vmThread pointer %p, thread ID %d", compThread, compInfoPT->getCompThreadId());
+      // fprintf(stderr, "Time spent in compilation thread =%u ms",
+      //         (unsigned)(j9thread_get_self_cpu_time(j9thread_self())/1000000));
       }
 
-   fprintf(stderr, "\tstopping compilation thread loop compThread %p %u %d %ld.\n", compThread, (int)TR_VerbosePerformance, (int)TR_VerbosePerformance, (int)TR_VerbosePerformance);
+   // fprintf(stderr, "\tstopping compilation thread loop compThread %p %u %d %ld.\n", compThread, (int)TR_VerbosePerformance, (int)TR_VerbosePerformance, (int)TR_VerbosePerformance);
 
 #ifdef J9VM_OPT_JAVA_OFFLOAD_SUPPORT
    if ( vm->javaOffloadSwitchOffWithReasonFunc != NULL )

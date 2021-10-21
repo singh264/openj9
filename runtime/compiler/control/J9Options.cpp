@@ -1872,7 +1872,7 @@ void J9::Options::preProcessCompilationThreads(J9JavaVM *vm, J9JITConfig *jitCon
 
       if (ret == OPTION_OK && numCompThreads > 0)
          {
-         fprintf(stderr, "preProcessCompilationThreads numCompThreads %u %d %ld.\n", numCompThreads, numCompThreads, numCompThreads);
+         // fprintf(stderr, "preProcessCompilationThreads numCompThreads %u %d %ld.\n", numCompThreads, numCompThreads, numCompThreads);
          _numUsableCompilationThreads = numCompThreads;
          compInfo->updateNumUsableCompThreads(_numUsableCompilationThreads);
          }
