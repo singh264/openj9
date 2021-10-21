@@ -3537,7 +3537,7 @@ IDATA J9THREAD_PROC compilationThreadProc(void *entryarg)
    static bool TR_NoStructuredHandler = feGetEnv("TR_NoStructuredHandler")?1:0;
 
    int rc = vm->internalVMFunctions->internalAttachCurrentThread
-       (vm, &compThread, NULL,flagIndexflagIndexflagIndex
+       (vm, &compThread, NULL,
         J9_PRIVATE_FLAGS_DAEMON_THREAD | J9_PRIVATE_FLAGS_NO_OBJECT |
         J9_PRIVATE_FLAGS_SYSTEM_THREAD | J9_PRIVATE_FLAGS_ATTACHED_THREAD,
         compInfoPT->getOsThread());
