@@ -7467,16 +7467,8 @@ TR_J9VM::transformJavaLangClassIsArrayOrIsPrimitive(TR::Compilation * comp, TR::
 
    TR::Node * vftFieldInd;
 
-   if (TR::Compiler->cls.classesOnHeap())
-      {
-      vftFieldInd = TR::Node::createWithSymRef(TR::aloadi, 1, 1, vftField, comp->getSymRefTab()->findOrCreateClassFromJavaLangClassSymbolRef());
-      isArrayField = TR::Node::createWithSymRef(TR::aloadi, 1, 1,vftFieldInd,symRefTab->findOrCreateClassRomPtrSymbolRef());
-      }
-   else
-      {
-      isArrayField = TR::Node::createWithSymRef(TR::aloadi, 1, 1,vftField,symRefTab->findOrCreateClassRomPtrSymbolRef());
-      vftFieldInd  = isArrayField; //pkalle
-      }
+   vftFieldInd = TR::Node::createWithSymRef(TR::aloadi, 1, 1, vftField, comp->getSymRefTab()->findOrCreateClassFromJavaLangClassSymbolRef());
+   isArrayField = TR::Node::createWithSymRef(TR::aloadi, 1, 1,vftFieldInd,symRefTab->findOrCreateClassRomPtrSymbolRef());
 
    if (treeTop->getNode()->getOpCode().isNullCheck())
       {
