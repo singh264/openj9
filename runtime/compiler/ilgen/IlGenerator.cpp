@@ -1062,17 +1062,10 @@ TR_J9ByteCodeIlGenerator::prependEntryCode(TR::Block * firstBlock)
       TR::Node * firstChild = pop();
       TR::SymbolReference * monEnterSymRef = symRefTab()->findOrCreateMethodMonitorEntrySymbolRef(_methodSymbol);
 
-      if (TR::Compiler->cls.classesOnHeap())
+      if (firstChild->getOpCodeValue() == TR::loadaddr && firstChild->getSymbol()->isClassObject())
          {
-         if (firstChild->getOpCodeValue() == TR::loadaddr && firstChild->getSymbol()->isClassObject())
-            {
-            monitorEnter = TR::Node::createWithSymRef(TR::aloadi, 1, 1, firstChild, symRefTab()->findOrCreateJavaLangClassFromClassSymbolRef());
-            monitorEnter = TR::Node::createWithSymRef(TR::monent, 1, 1, monitorEnter, monEnterSymRef);
-            }
-         else
-            {
-            monitorEnter = TR::Node::createWithSymRef(TR::monent, 1, 1, firstChild, monEnterSymRef);
-            }
+         monitorEnter = TR::Node::createWithSymRef(TR::aloadi, 1, 1, firstChild, symRefTab()->findOrCreateJavaLangClassFromClassSymbolRef());
+         monitorEnter = TR::Node::createWithSymRef(TR::monent, 1, 1, monitorEnter, monEnterSymRef);
          }
       else
          {
