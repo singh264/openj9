@@ -1539,12 +1539,9 @@ TR_J9ByteCodeIlGenerator::genNewInstanceImplThunk()
       //the call to findOrCreateClassSymbol is safe even though we pass CPI of -1 since it is guarded by !isAOT check in createResolvedMethodWithSignature
       loadSymbol(TR::loadaddr, symRefTab()->findOrCreateClassSymbol(_methodSymbol, -1, classId)); // This Class
 
-      if (TR::Compiler->cls.classesOnHeap())
-         {
-         TR::Node* node = pop();
-         node = TR::Node::createWithSymRef(TR::aloadi, 1, 1, node, symRefTab()->findOrCreateJavaLangClassFromClassSymbolRef());
-         push(node);
-         }
+      TR::Node* node = pop();
+      node = TR::Node::createWithSymRef(TR::aloadi, 1, 1, node, symRefTab()->findOrCreateJavaLangClassFromClassSymbolRef());
+      push(node);
 
       genTreeTop(genNodeAndPopChildren(TR::call, 3, accessCheckSymRef));
       }
