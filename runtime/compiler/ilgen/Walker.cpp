@@ -6006,10 +6006,7 @@ TR_J9ByteCodeIlGenerator::loadFromCP(TR::DataType type, int32_t cpIndex)
             }
          else if (method()->isClassConstant(cpIndex))
             {
-            if (TR::Compiler->cls.classesOnHeap())
-               loadClassObjectAndIndirect(cpIndex);
-            else
-               loadClassObject(cpIndex);
+            loadClassObjectAndIndirect(cpIndex);
             }
          else if (method()->isStringConstant(cpIndex))
             {
