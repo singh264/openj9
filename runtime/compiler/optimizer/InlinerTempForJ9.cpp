@@ -1786,10 +1786,7 @@ TR_J9InlinerPolicy::inlineGetClassAccessFlags(TR::ResolvedMethodSymbol *calleeSy
 
    TR::Node::recreate(j9cNode, TR::aload);
 
-   if (TR::Compiler->cls.classesOnHeap())
-      {
-      j9cNode = TR::Node::createWithSymRef(TR::aloadi, 1, 1, j9cNode, comp()->getSymRefTab()->findOrCreateClassFromJavaLangClassSymbolRef());
-      }
+   j9cNode = TR::Node::createWithSymRef(TR::aloadi, 1, 1, j9cNode, comp()->getSymRefTab()->findOrCreateClassFromJavaLangClassSymbolRef());
 
    TR::Node *nullCheckNode = TR::Node::createWithSymRef(TR::NULLCHK, 1, 1, j9cNode, comp()->getSymRefTab()->findOrCreateNullCheckSymbolRef(callerSymbol));
    TR::TreeTop *nullCheckTree = TR::TreeTop::create(comp(), nullCheckNode);
