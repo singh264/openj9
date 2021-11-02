@@ -6237,7 +6237,7 @@ TR_J9ByteCodeIlGenerator::genMonitorExit(bool isReturn)
    bool isStatic = (node->getOpCodeValue() == TR::loadaddr && node->getSymbol()->isClassObject());
    ///bool isStatic = _methodSymbol->isStatic();
 
-   if (isStatic && TR::Compiler->cls.classesOnHeap())
+   if (isStatic)
       node = TR::Node::createWithSymRef(TR::aloadi, 1, 1, node, symRefTab()->findOrCreateJavaLangClassFromClassSymbolRef());
 
    if (!comp()->getOption(TR_DisableLiveMonitorMetadata))
