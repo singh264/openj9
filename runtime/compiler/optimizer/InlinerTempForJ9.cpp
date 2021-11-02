@@ -6291,17 +6291,11 @@ TR_J9TransformInlinedFunction::appendCatchBlockForInlinedSyncMethod(
    //
    TR::Node * monitorArg, *monitorArgHandle;
    if (_calleeSymbol->isStatic())
-      if (TR::Compiler->cls.classesOnHeap())
-         {
-         monitorArgHandle = TR::Node::createWithSymRef(lastNode, TR::loadaddr, 0,
-                                            symRefTab->findOrCreateClassSymbol (_calleeSymbol, 0, _calleeSymbol->getResolvedMethod()->containingClass()));
-         monitorArgHandle = TR::Node::createWithSymRef(TR::aloadi, 1, 1, monitorArgHandle, symRefTab->findOrCreateJavaLangClassFromClassSymbolRef());
-         }
-      else
-         {
-         monitorArgHandle = TR::Node::createWithSymRef(lastNode, TR::loadaddr, 0,
-                                            symRefTab->findOrCreateClassSymbol (_calleeSymbol, 0, _calleeSymbol->getResolvedMethod()->containingClass()));
-         }
+      {
+      monitorArgHandle = TR::Node::createWithSymRef(lastNode, TR::loadaddr, 0,
+                                          symRefTab->findOrCreateClassSymbol (_calleeSymbol, 0, _calleeSymbol->getResolvedMethod()->containingClass()));
+      monitorArgHandle = TR::Node::createWithSymRef(TR::aloadi, 1, 1, monitorArgHandle, symRefTab->findOrCreateJavaLangClassFromClassSymbolRef());
+      }
    else
       monitorArgHandle = TR::Node::createWithSymRef(lastNode, TR::aload, 0, symRefTab->findOrCreateAutoSymbol(_calleeSymbol, 0, TR::Address));
 
