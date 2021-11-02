@@ -1911,16 +1911,7 @@ J9::Z::PrivateLinkage::buildVirtualDispatch(TR::Node * callNode, TR::RegisterDep
          }
 
       // load class pointer
-      TR::Register *classReg;
-      if (!TR::Compiler->cls.classesOnHeap() && methodSymRef == comp()->getSymRefTab()->findObjectNewInstanceImplSymbol())
-         {
-         classReg = RegThis;
-         TR_ASSERT( offset >= 0,"J9::Z::PrivateLinkage::buildVirtualDispatch - Offset to instanceOf method is assumed positive\n");
-         }
-      else
-         {
-         classReg = vftReg;
-         }
+      TR::Register *classReg = vftReg;
 
       if (!TR::Compiler->cls.classesOnHeap() && offset >= 0 && methodSymRef == comp()->getSymRefTab()->findObjectNewInstanceImplSymbol())
          {
