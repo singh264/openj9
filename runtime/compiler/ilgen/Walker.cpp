@@ -6188,7 +6188,7 @@ TR_J9ByteCodeIlGenerator::genMonitorEnter()
 
    bool isStatic = (node->getOpCodeValue() == TR::loadaddr && node->getSymbol()->isClassObject());
 
-   if (isStatic && TR::Compiler->cls.classesOnHeap())
+   if (isStatic)
       node = TR::Node::createWithSymRef(TR::aloadi, 1, 1, node, symRefTab()->findOrCreateJavaLangClassFromClassSymbolRef());
 
    TR::Node *loadNode = node;
