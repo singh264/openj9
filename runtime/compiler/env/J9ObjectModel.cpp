@@ -58,7 +58,7 @@ J9::ObjectModel::initialize()
    {
    OMR::ObjectModelConnector::initialize();
 
-   OMR::ObjectModelConnector::initializeObjectAlignmentInBytes(int32_t objectAlignmentInBytes);
+   OMR::ObjectModelConnector::initializeObjectAlignmentInBytes(1);
 
    J9JavaVM *vm = TR::Compiler->javaVM;
 
