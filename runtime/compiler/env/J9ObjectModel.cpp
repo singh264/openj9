@@ -31,8 +31,10 @@
 #endif
 
 #include <algorithm>
+#include <chrono>
 #include <limits.h>
 #include <stdint.h>
+#include <stdio.h>
 #include "j9.h"
 #include "j9cfg.h"
 #include "j9modron.h"
@@ -101,6 +103,15 @@ J9::ObjectModel::initialize()
       }
 
    _objectAlignmentInBytes = objectAlignmentInBytes();
+
+   printf("J9::ObjectModel::initialize()\n");
+   int32_t A = objectAlignmentInBytes();
+   printf("objectAlignmentInBytes() %d\n", A);
+   int32_t B = getObjectAlignmentInBytes();
+   printf("getObjectAlignmentInBytes() %d\n", B);
+
+   auto start = std::chrono::steady_clock::now();
+   printf("start %d\n", start);
    }
 
 
