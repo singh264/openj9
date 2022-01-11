@@ -7983,7 +7983,7 @@ TR::CompilationInfoPerThreadBase::aotCompilationReUpgradedToWarm(CompilationInfo
    }
 
 void
-TR::CompilationInfoPerThreadBase::initializeCompiler(CompilationInfoPerThreadBase *compilationInfo, CompileParameters *compileParameters, TR_ResolvedMethod *&compilee, TR::Compilation *&compiler_tmp, TR::IlGeneratorMethodDetails &methodDetails, TR::Options *&options, TR_J9VMBase *vm, TR_RelocationRuntime *reloRuntime, uint64_t &proposedScratchMemoryLimit, TR::SegmentAllocator &scratchSegmentProvider)
+TR::CompilationInfoPerThreadBase::initializeCompiler(CompilationInfoPerThreadBase *compilationInfo, CompileParameters *compileParameters, TR_ResolvedMethod *&compilee, TR::Compilation *&compiler, TR::IlGeneratorMethodDetails &methodDetails, TR::Options *&options, TR_J9VMBase *vm, TR_RelocationRuntime *reloRuntime, uint64_t &proposedScratchMemoryLimit, TR::SegmentAllocator &scratchSegmentProvider)
    {
       // In JITServer, we would like to use JITClient's processor info for the compilation
       // The following code effectively replaces the cpu with client's cpu through the getProcessorDescription() that has JITServer support
@@ -8004,7 +8004,7 @@ TR::CompilationInfoPerThreadBase::initializeCompiler(CompilationInfoPerThreadBas
             target = TR::Compiler->relocatableTarget;
             }
          }
-      compiler_tmp = new (compileParameters->trMemory(), heapAlloc) TR::Compilation(
+      compiler = new (compileParameters->trMemory(), heapAlloc) TR::Compilation(
             compilationInfo->getCompThreadId(),
             vmThread,
             vm,
@@ -8021,29 +8021,29 @@ TR::CompilationInfoPerThreadBase::initializeCompiler(CompilationInfoPerThreadBas
       // JITServer TODO: put info in optPlan so that compilation constructor can do this
       if (compilationInfo->_methodBeingCompiled->isRemoteCompReq())
          {
-         compiler_tmp->setRemoteCompilation();
+         compiler->setRemoteCompilation();
          // Create the KOT by default at the client if it's a remote compilation.
          // getOrCreateKnownObjectTable() checks if TR_DisableKnownObjectTable is set or not.
-         compiler_tmp->getOrCreateKnownObjectTable();
+         compiler->getOrCreateKnownObjectTable();
          }
       else if (compilationInfo->_methodBeingCompiled->isOutOfProcessCompReq())
          {
-         compiler_tmp->setOutOfProcessCompilation();
+         compiler->setOutOfProcessCompilation();
          // Create the KOT by default at the server as long as it is not disabled at the client.
-         compiler_tmp->getOrCreateKnownObjectTable();
-         compiler_tmp->setClientData(compilationInfo->getClientData());
+         compiler->getOrCreateKnownObjectTable();
+         compiler->setClientData(compilationInfo->getClientData());
          }
 #endif /* defined(J9VM_OPT_JITSERVER) */
 
-      compileParameters->trMemory()->setCompilation(compiler_tmp);
-      compilationInfo->setCompilation(compiler_tmp);
+      compileParameters->trMemory()->setCompilation(compiler);
+      compilationInfo->setCompilation(compiler);
 
-      TR_ASSERT(TR::comp() == compiler_tmp, "the TLS TR::Compilation object %p for this thread does not match the one %p just created.", TR::comp(), compiler_tmp);
+      TR_ASSERT(TR::comp() == compiler, "the TLS TR::Compilation object %p for this thread does not match the one %p just created.", TR::comp(), compiler);
 
 #ifdef MCT_DEBUG
-      fprintf(stderr, "Created new compiler_tmp %p ID=%d\n", compiler_tmp, compiler_tmp->getCompThreadID());
+      fprintf(stderr, "Created new compiler %p ID=%d\n", compiler, compiler->getCompThreadID());
 #endif
-      if (compiler_tmp)
+      if (compiler)
          {
          bool isJSR292 = TR::CompilationInfo::isJSR292(methodDetails.getMethod());
 
@@ -8051,8 +8051,8 @@ TR::CompilationInfoPerThreadBase::initializeCompiler(CompilationInfoPerThreadBas
          if (isJSR292)
             {
             /* Set options */
-            compiler_tmp->getOptions()->setOption(TR_Server);
-            compiler_tmp->getOptions()->setOption(TR_ProcessHugeMethods);
+            compiler->getOptions()->setOption(TR_Server);
+            compiler->getOptions()->setOption(TR_ProcessHugeMethods);
 
             // Try to increase scratch space limit for JSR292 compilations
             proposedScratchMemoryLimit *= TR::Options::getScratchSpaceFactorWhenJSR292Workload();
@@ -8060,11 +8060,11 @@ TR::CompilationInfoPerThreadBase::initializeCompiler(CompilationInfoPerThreadBas
 #if defined(J9VM_OPT_OPENJDK_METHODHANDLE)
             // Allow larger methods to be inlined into scorching bodies for JSR292 methods.
             //
-            compiler_tmp->getOptions()->setBigCalleeScorchingOptThreshold(1024);
+            compiler->getOptions()->setBigCalleeScorchingOptThreshold(1024);
 #endif
             }
 #if defined(J9VM_OPT_JITSERVER)
-         else if (compiler_tmp->isOutOfProcessCompilation())
+         else if (compiler->isOutOfProcessCompilation())
             {
             // We want to increase the scratch memory if it's a out of process compilation
             proposedScratchMemoryLimit *= TR::Options::getScratchSpaceFactorWhenJITServerWorkload();
@@ -8076,7 +8076,7 @@ TR::CompilationInfoPerThreadBase::initializeCompiler(CompilationInfoPerThreadBas
          // Check if the method to be compiled is a Thunk Archetype
          if (methodDetails.isMethodHandleThunk())
             {
-            compiler_tmp->getOptions()->setAllowRecompilation(false);
+            compiler->getOptions()->setAllowRecompilation(false);
             options->setOption(TR_DisableOSR);
             options->setOption(TR_EnableOSR, false);
             }
@@ -8086,20 +8086,20 @@ TR::CompilationInfoPerThreadBase::initializeCompiler(CompilationInfoPerThreadBas
          // recompilation, the application thread can no longer OSR out to the interpreter;
          // it is forced to return to the oldStartPC (to jump to a helper) which may not
          // necessarily be valid.
-         if (compiler_tmp->getOption(TR_FullSpeedDebug) && !compilationInfo->_compInfo.asynchronousCompilation())
+         if (compiler->getOption(TR_FullSpeedDebug) && !compilationInfo->_compInfo.asynchronousCompilation())
             {
-            compiler_tmp->getOptions()->setAllowRecompilation(false);
+            compiler->getOptions()->setAllowRecompilation(false);
             }
 
          // Check to see if there is sufficient physical memory available for this compilation
-         if (compiler_tmp->getOption(TR_EnableSelfTuningScratchMemoryUsageBeforeCompile))
+         if (compiler->getOption(TR_EnableSelfTuningScratchMemoryUsageBeforeCompile))
             {
             bool incompleteInfo = false;
             // Abort the compile if we don't have at least getScratchSpaceLowerBound()
             // available, plus some safe reserve
             // TODO: we may want to use a lower value for third parameter below if the
             // compilation is deemed cheap (JNI, thunks, cold small method)
-            uint64_t physicalLimit = compilationInfo->_compInfo.computeFreePhysicalLimitAndAbortCompilationIfLow(compiler_tmp,
+            uint64_t physicalLimit = compilationInfo->_compInfo.computeFreePhysicalLimitAndAbortCompilationIfLow(compiler,
                                                                                                 incompleteInfo,
                                                                                                 TR::Options::getScratchSpaceLowerBound());
             // If we were able to get the memory information
@@ -8110,7 +8110,7 @@ TR::CompilationInfoPerThreadBase::initializeCompiler(CompilationInfoPerThreadBas
 #if defined(J9VM_OPT_JITSERVER)
                // Moreover, for JITServer do not allow a single compilation to consume
                // more than half of the free physical memory
-               if (compiler_tmp->isOutOfProcessCompilation())
+               if (compiler->isOutOfProcessCompilation())
                   physicalLimit = std::max(physicalLimit >> 1, static_cast<uint64_t>(TR::Options::getScratchSpaceLowerBound()));
 #endif
                if (proposedScratchMemoryLimit > physicalLimit)
@@ -8802,7 +8802,6 @@ TR::CompilationInfoPerThreadBase::wrappedCompile(J9PortLibrary *portLib, void * 
    {
    CompileParameters * p = static_cast<CompileParameters *>(opaqueParameters);
    TR::Compilation     * volatile compiler = 0;
-   TR::Compilation     * compiler_tmp = 0;
    TR::Options         *options  = 0;
    TR_ResolvedMethod  *compilee = 0;
 
@@ -8853,9 +8852,7 @@ TR::CompilationInfoPerThreadBase::wrappedCompile(J9PortLibrary *portLib, void * 
          // Finally, set JitDump specific options as the last step of options adjustments
          setJitDumpSpecificOptions(that, details, options, proposedScratchMemoryLimit);
 
-         initializeCompiler(that, p, compilee, compiler_tmp, details, options, vm, reloRuntime, proposedScratchMemoryLimit, scratchSegmentProvider);
-
-         compiler = compiler_tmp;
+         initializeCompiler(that, p, compilee, compiler, details, options, vm, reloRuntime, proposedScratchMemoryLimit, scratchSegmentProvider);
 
          if (debug("traceInfo") && optionSetIndex > 0)
             {
