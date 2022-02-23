@@ -8800,28 +8800,28 @@ TR::CompilationInfoPerThreadBase::isOutOfProcessCompReq(TR::CompilationInfoPerTh
 bool
 TR::CompilationInfoPerThreadBase::isCodeOrDataCacheFull(TR::CompilationInfoPerThreadBase *compilationInfo, CompileParameters *compileParameters)
    {
-      J9JITConfig *jitConfig = compilationInfo->_jitConfig;
-      J9VMThread *vmThread = compileParameters->_vmThread;
+   J9JITConfig *jitConfig = compilationInfo->_jitConfig;
+   J9VMThread *vmThread = compileParameters->_vmThread;
 
-      if (!(jitConfig->runtimeFlags & (J9JIT_CODE_CACHE_FULL | J9JIT_DATA_CACHE_FULL)))
-         {
-         return false;
-         }
+   if (!(jitConfig->runtimeFlags & (J9JIT_CODE_CACHE_FULL | J9JIT_DATA_CACHE_FULL)))
+      {
+      return false;
+      }
 
-      // Optimization to disable future first time compilations from reaching the queue
-      compilationInfo->getCompilationInfo()->getPersistentInfo()->setDisableFurtherCompilation(true);
+   // Optimization to disable future first time compilations from reaching the queue
+   compilationInfo->getCompilationInfo()->getPersistentInfo()->setDisableFurtherCompilation(true);
 
-      if (TR::Options::isAnyVerboseOptionSet(TR_VerboseCompileEnd, TR_VerboseCompFailure))
-         {
-         TR_VerboseLog::writeLineLocked(TR_Vlog_INFO,"<WARNING: JIT CACHES FULL> Disable further compilation");
-         }
-      if (jitConfig->runtimeFlags & J9JIT_CODE_CACHE_FULL)
-         Trc_JIT_cacheFull(vmThread);
-      if (jitConfig->runtimeFlags & J9JIT_DATA_CACHE_FULL)
-         Trc_JIT_dataCacheFull(vmThread);
-      compilationInfo->_methodBeingCompiled->_compErrCode = compilationExcessiveSize;
+   if (TR::Options::isAnyVerboseOptionSet(TR_VerboseCompileEnd, TR_VerboseCompFailure))
+      {
+      TR_VerboseLog::writeLineLocked(TR_Vlog_INFO,"<WARNING: JIT CACHES FULL> Disable further compilation");
+      }
+   if (jitConfig->runtimeFlags & J9JIT_CODE_CACHE_FULL)
+      Trc_JIT_cacheFull(vmThread);
+   if (jitConfig->runtimeFlags & J9JIT_DATA_CACHE_FULL)
+      Trc_JIT_dataCacheFull(vmThread);
+   compilationInfo->_methodBeingCompiled->_compErrCode = compilationExcessiveSize;
 
-      return true;
+   return true;
    }
 
 bool
