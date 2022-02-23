@@ -8827,28 +8827,28 @@ TR::CompilationInfoPerThreadBase::isCodeOrDataCacheFull(TR::CompilationInfoPerTh
 bool
 TR::CompilationInfoPerThreadBase::isRestrictedMethod(TR::CompilationInfoPerThreadBase *compilationInfo, TR_ResolvedMethod *compilee, CompileParameters *compileParameters, TR_FilterBST *&filterInfo)
    {
-      TR_J9VMBase *vm = compileParameters->_vm;
-      J9VMThread *vmThread = compileParameters->_vmThread;
+   TR_J9VMBase *vm = compileParameters->_vm;
+   J9VMThread *vmThread = compileParameters->_vmThread;
 
-      // JITServer: methodCanBeCompiled check should have been done on the client, skip it on the server.
-      if (compilationInfo->_methodBeingCompiled->isOutOfProcessCompReq() ||
-          compilationInfo->methodCanBeCompiled(compileParameters->trMemory(), vm, compilee, filterInfo))
-         {
-         return false;
-         }
+   // JITServer: methodCanBeCompiled check should have been done on the client, skip it on the server.
+   if (compilationInfo->_methodBeingCompiled->isOutOfProcessCompReq() ||
+       compilationInfo->methodCanBeCompiled(compileParameters->trMemory(), vm, compilee, filterInfo))
+      {
+      return false;
+      }
 
-      compilationInfo->_methodBeingCompiled->_compErrCode = compilationRestrictedMethod;
+   compilationInfo->_methodBeingCompiled->_compErrCode = compilationRestrictedMethod;
 
-      TR::Options *options = TR::Options::getJITCmdLineOptions();
-      if (vm->isAOT_DEPRECATED_DO_NOT_USE())
-         options = TR::Options::getAOTCmdLineOptions();
-      if (options->getVerboseOption(TR_VerboseCompileExclude))
-         {
-         TR_VerboseLog::writeLineLocked(TR_Vlog_COMPFAIL, "%s cannot be translated", compilee->signature(compileParameters->trMemory()));
-         }
-      Trc_JIT_noAttemptToJit(vmThread, compilee->signature(compileParameters->trMemory()));
+   TR::Options *options = TR::Options::getJITCmdLineOptions();
+   if (vm->isAOT_DEPRECATED_DO_NOT_USE())
+      options = TR::Options::getAOTCmdLineOptions();
+   if (options->getVerboseOption(TR_VerboseCompileExclude))
+      {
+      TR_VerboseLog::writeLineLocked(TR_Vlog_COMPFAIL, "%s cannot be translated", compilee->signature(compileParameters->trMemory()));
+      }
+   Trc_JIT_noAttemptToJit(vmThread, compilee->signature(compileParameters->trMemory()));
 
-      return true;
+   return true;
    }
 
 void
