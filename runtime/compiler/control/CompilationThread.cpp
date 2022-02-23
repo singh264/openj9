@@ -7963,30 +7963,30 @@ TR::CompilationInfoPerThreadBase::compile(J9VMThread * vmThread,
 bool
 TR::CompilationInfoPerThreadBase::aotCompilationReUpgradedToWarm(CompilationInfoPerThreadBase *compilationInfo, CompileParameters *compileParameters, TR_OpaqueMethodBlock *method)
    {
-      bool isAotCompilationReUpgradedToWarm = false;
-      if (compilationInfo->_methodBeingCompiled->_useAotCompilation)
-         {
-         // In some circumstances AOT compilations are performed at warm
-         if ((TR::Options::getCmdLineOptions()->getAggressivityLevel() == TR::Options::AGGRESSIVE_AOT ||
-             compilationInfo->getCompilationInfo()->importantMethodForStartup((J9Method*)method) ||
-             (!TR::Compiler->target.cpu.isPower() && // Temporary change until we figure out the AOT bug on PPC
-              !TR::Options::getAOTCmdLineOptions()->getOption(TR_DisableAotAtCheapWarm))) &&
-             compileParameters->_optimizationPlan->isOptLevelDowngraded() &&
-             compileParameters->_optimizationPlan->getOptLevel() == cold // Is this test really needed?
+   bool isAotCompilationReUpgradedToWarm = false;
+   if (compilationInfo->_methodBeingCompiled->_useAotCompilation)
+      {
+      // In some circumstances AOT compilations are performed at warm
+      if ((TR::Options::getCmdLineOptions()->getAggressivityLevel() == TR::Options::AGGRESSIVE_AOT ||
+           compilationInfo->getCompilationInfo()->importantMethodForStartup((J9Method*)method) ||
+            (!TR::Compiler->target.cpu.isPower() && // Temporary change until we figure out the AOT bug on PPC
+             !TR::Options::getAOTCmdLineOptions()->getOption(TR_DisableAotAtCheapWarm))) &&
+           compileParameters->_optimizationPlan->isOptLevelDowngraded() &&
+           compileParameters->_optimizationPlan->getOptLevel() == cold // Is this test really needed?
 #if defined(J9VM_OPT_JITSERVER)
             // Do not reupgrade a compilation that was downgraded due to low memory
             && (TR::Options::getCmdLineOptions()->getOption(TR_DisableJITServerBufferedExpensiveCompilations) ||
                 !compilationInfo->_methodBeingCompiled->shouldUpgradeOutOfProcessCompilation())
 #endif
-            )
-            {
-            compileParameters->_optimizationPlan->setOptLevel(warm);
-            compileParameters->_optimizationPlan->setOptLevelDowngraded(false);
-            isAotCompilationReUpgradedToWarm = true;
-            }
+         )
+         {
+         compileParameters->_optimizationPlan->setOptLevel(warm);
+         compileParameters->_optimizationPlan->setOptLevelDowngraded(false);
+         isAotCompilationReUpgradedToWarm = true;
          }
+      }
 
-         return isAotCompilationReUpgradedToWarm;
+      return isAotCompilationReUpgradedToWarm;
    }
 
 void
