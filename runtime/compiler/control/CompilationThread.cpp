@@ -8650,118 +8650,118 @@ TR::CompilationInfoPerThreadBase::tweakNonAotLoadCompilationStrategy(Compilation
 void
 TR::CompilationInfoPerThreadBase::initializeNonOutOfProcessComp(CompilationInfoPerThreadBase *compilationInfo, TR_ResolvedMethod *compilee, CompileParameters *compileParameters, TR_FilterBST *filterInfo, TR::IlGeneratorMethodDetails &methodDetails, TR::Options *&options, bool &reducedWarm, TR_J9VMBase *vm)
    {
-      J9VMThread *vmThread = compileParameters->_vmThread;
-      TR_OpaqueMethodBlock *method = (TR_OpaqueMethodBlock *) methodDetails.getMethod();
+   J9VMThread *vmThread = compileParameters->_vmThread;
+   TR_OpaqueMethodBlock *method = (TR_OpaqueMethodBlock *) methodDetails.getMethod();
 
 #if defined(J9VM_OPT_JITSERVER)
-      // JITServer: we want to suppress log file for client mode
-      // Client will get the log files from server.
-      if (compilationInfo->_methodBeingCompiled->isRemoteCompReq())
-         {
-         TR::Options::suppressLogFileBecauseDebugObjectNotCreated();
-         }
-      TR_ASSERT(!compilationInfo->_methodBeingCompiled->isOutOfProcessCompReq(), "JITServer should not change options passed by client");
+   // JITServer: we want to suppress log file for client mode
+   // Client will get the log files from server.
+   if (compilationInfo->_methodBeingCompiled->isRemoteCompReq())
+      {
+      TR::Options::suppressLogFileBecauseDebugObjectNotCreated();
+      }
+   TR_ASSERT(!compilationInfo->_methodBeingCompiled->isOutOfProcessCompReq(), "JITServer should not change options passed by client");
 #endif /* defined(J9VM_OPT_JITSERVER) */
 
-      bool isAotCompilationReUpgradedToWarm = aotCompilationReUpgradedToWarm(compilationInfo, compileParameters, method);
+   bool isAotCompilationReUpgradedToWarm = aotCompilationReUpgradedToWarm(compilationInfo, compileParameters, method);
 
-      TR_PersistentCHTable *cht = compilationInfo->_compInfo.getPersistentInfo()->getPersistentCHTable();
-      if (cht && !cht->isActive())
-         compileParameters->_optimizationPlan->setDisableCHOpts();
+   TR_PersistentCHTable *cht = compilationInfo->_compInfo.getPersistentInfo()->getPersistentCHTable();
+   if (cht && !cht->isActive())
+      compileParameters->_optimizationPlan->setDisableCHOpts();
 
-      int32_t optionSetIndex = filterInfo ? filterInfo->getOptionSet() : 0;
-      int32_t lineNumber = filterInfo ? filterInfo->getLineNumber() : 0;
-      // Set up options for this compilation. An option subset might apply
-      // to the method, either via an option set index in the limitfile or
-      // via a regular expression that matches the method.
-      //
-      options = new (compileParameters->trMemory(), heapAlloc) TR::Options(
-            compileParameters->trMemory(),
-            optionSetIndex,
-            lineNumber,
-            compilee,
-            compilationInfo->_methodBeingCompiled->_oldStartPC,
-            compileParameters->_optimizationPlan,
-            (vm->isAOT_DEPRECATED_DO_NOT_USE() || compilationInfo->_methodBeingCompiled->isAotLoad()),
-            compilationInfo->getCompThreadId());
-      // JITServer TODO determine if we care to support annotations
-      if (compilationInfo->_methodBeingCompiled->isRemoteCompReq())
-         {
+   int32_t optionSetIndex = filterInfo ? filterInfo->getOptionSet() : 0;
+   int32_t lineNumber = filterInfo ? filterInfo->getLineNumber() : 0;
+   // Set up options for this compilation. An option subset might apply
+   // to the method, either via an option set index in the limitfile or
+   // via a regular expression that matches the method.
+   //
+   options = new (compileParameters->trMemory(), heapAlloc) TR::Options(
+         compileParameters->trMemory(),
+         optionSetIndex,
+         lineNumber,
+         compilee,
+         compilationInfo->_methodBeingCompiled->_oldStartPC,
+         compileParameters->_optimizationPlan,
+         (vm->isAOT_DEPRECATED_DO_NOT_USE() || compilationInfo->_methodBeingCompiled->isAotLoad()),
+         compilationInfo->getCompThreadId());
+   // JITServer TODO determine if we care to support annotations
+   if (compilationInfo->_methodBeingCompiled->isRemoteCompReq())
+      {
+      options->setOption(TR_EnableAnnotations,false);
+
+      // This option is used to generate SIMD instructions on Z. Currently the infrastructure
+      // to support the relocation of some of those instructions is not available. Thus we disable
+      // this option for remote compilations.
+      options->setOption(TR_DisableSIMDArrayTranslate);
+
+      // Infrastructure to support the TOC is currently not available for Remote Compilations. We disable the feature
+      // here so that the codegen doesn't generate TOC enabled code as it won't be valid on the client JVM.
+      options->setOption(TR_DisableTOC);
+      }
+   // Determine if known annotations exist and if so, keep annotations enabled
+   if (!compilationInfo->_methodBeingCompiled->isAotLoad() &&
+       !vm->isAOT_DEPRECATED_DO_NOT_USE() &&
+       options->getOption(TR_EnableAnnotations))
+      {
+      if (!TR_AnnotationBase::scanForKnownAnnotationsAndRecord(&compilationInfo->_compInfo, methodDetails.getMethod(), vmThread->javaVM, vm))
          options->setOption(TR_EnableAnnotations,false);
+      }
 
-         // This option is used to generate SIMD instructions on Z. Currently the infrastructure
-         // to support the relocation of some of those instructions is not available. Thus we disable
-         // this option for remote compilations.
-         options->setOption(TR_DisableSIMDArrayTranslate);
+   if (vm->canUseSymbolValidationManager() && options->getOption(TR_EnableSymbolValidationManager))
+      {
+      options->setOption(TR_UseSymbolValidationManager);
+      options->setOption(TR_DisableKnownObjectTable);
+      }
+   else if (!vm->canUseSymbolValidationManager())
+      {
+      // disable SVM in case it was enabled explicitly with -Xjit:useSymbolValidationManager
+      options->setOption(TR_UseSymbolValidationManager, false);
+      }
 
-         // Infrastructure to support the TOC is currently not available for Remote Compilations. We disable the feature
-         // here so that the codegen doesn't generate TOC enabled code as it won't be valid on the client JVM.
-         options->setOption(TR_DisableTOC);
-         }
-      // Determine if known annotations exist and if so, keep annotations enabled
-      if (!compilationInfo->_methodBeingCompiled->isAotLoad() &&
-          !vm->isAOT_DEPRECATED_DO_NOT_USE() &&
-          options->getOption(TR_EnableAnnotations))
+   if (compilationInfo->_methodBeingCompiled->_optimizationPlan->disableCHOpts())
+      options->disableCHOpts();
+
+   if (compilationInfo->_methodBeingCompiled->_optimizationPlan->disableGCR())
+      options->setOption(TR_DisableGuardedCountingRecompilations);
+
+   if (options->getOption(TR_DisablePrexistenceDuringGracePeriod))
+      {
+      if (compilationInfo->getCompilationInfo()->getPersistentInfo()->getElapsedTime() < compilationInfo->getCompilationInfo()->getPersistentInfo()->getClassLoadingPhaseGracePeriod())
+         options->setDisabled(OMR::invariantArgumentPreexistence, true);
+      }
+
+   // RI Based Reduced Warm Compilation
+   if (compileParameters->_optimizationPlan->isHwpDoReducedWarm())
+      {
+      options->setLocalAggressiveAOT();
+      }
+
+   tweakNonAotLoadCompilationStrategy(compilationInfo, compileParameters, methodDetails, vm, options, reducedWarm);
+
+   // If we are at the last retrial and the automatic logging feature is turned on
+   // set TR_TraceAll options to generate a full log file for this compilation
+   // (just in case it fails again). Note that the log file must be specified.
+   //
+   if (options->getOption(TR_EnableLastCompilationRetrialLogging) &&
+       (compilationInfo->_methodBeingCompiled->_compilationAttemptsLeft == 1))
+      {
+      if (options->getLogFile() != NULL)
+         options->setOption(TR_TraceAll);
+      }
+
+   TR_ASSERT(TR::comp() == NULL, "there seems to be a current TLS TR::Compilation object %p for this thread. At this point there should be no current TR::Compilation object", TR::comp());
+
+   // Under -Xtune:throughput we allow huge methods for compilations above warm
+   if (TR::Options::getAggressivityLevel() ==  TR::Options::TR_AggresivenessLevel::AGGRESSIVE_THROUGHPUT &&
+       options->getOptLevel() > warm &&
+       !options->getOption(TR_ProcessHugeMethods))
+      {
+      static char *dontAcceptHugeMethods = feGetEnv("TR_DontAcceptHugeMethods");
+      if (!dontAcceptHugeMethods)
          {
-         if (!TR_AnnotationBase::scanForKnownAnnotationsAndRecord(&compilationInfo->_compInfo, methodDetails.getMethod(), vmThread->javaVM, vm))
-            options->setOption(TR_EnableAnnotations,false);
+         options->setOption(TR_ProcessHugeMethods);
          }
-
-      if (vm->canUseSymbolValidationManager() && options->getOption(TR_EnableSymbolValidationManager))
-         {
-         options->setOption(TR_UseSymbolValidationManager);
-         options->setOption(TR_DisableKnownObjectTable);
-         }
-      else if (!vm->canUseSymbolValidationManager())
-         {
-         // disable SVM in case it was enabled explicitly with -Xjit:useSymbolValidationManager
-         options->setOption(TR_UseSymbolValidationManager, false);
-         }
-
-      if (compilationInfo->_methodBeingCompiled->_optimizationPlan->disableCHOpts())
-         options->disableCHOpts();
-
-      if (compilationInfo->_methodBeingCompiled->_optimizationPlan->disableGCR())
-         options->setOption(TR_DisableGuardedCountingRecompilations);
-
-      if (options->getOption(TR_DisablePrexistenceDuringGracePeriod))
-         {
-         if (compilationInfo->getCompilationInfo()->getPersistentInfo()->getElapsedTime() < compilationInfo->getCompilationInfo()->getPersistentInfo()->getClassLoadingPhaseGracePeriod())
-            options->setDisabled(OMR::invariantArgumentPreexistence, true);
-         }
-
-      // RI Based Reduced Warm Compilation
-      if (compileParameters->_optimizationPlan->isHwpDoReducedWarm())
-         {
-         options->setLocalAggressiveAOT();
-         }
-
-      tweakNonAotLoadCompilationStrategy(compilationInfo, compileParameters, methodDetails, vm, options, reducedWarm);
-
-      // If we are at the last retrial and the automatic logging feature is turned on
-      // set TR_TraceAll options to generate a full log file for this compilation
-      // (just in case it fails again). Note that the log file must be specified.
-      //
-      if (options->getOption(TR_EnableLastCompilationRetrialLogging) &&
-          (compilationInfo->_methodBeingCompiled->_compilationAttemptsLeft == 1))
-         {
-         if (options->getLogFile() != NULL)
-            options->setOption(TR_TraceAll);
-         }
-
-      TR_ASSERT(TR::comp() == NULL, "there seems to be a current TLS TR::Compilation object %p for this thread. At this point there should be no current TR::Compilation object", TR::comp());
-
-      // Under -Xtune:throughput we allow huge methods for compilations above warm
-      if (TR::Options::getAggressivityLevel() ==  TR::Options::TR_AggresivenessLevel::AGGRESSIVE_THROUGHPUT &&
-          options->getOptLevel() > warm &&
-          !options->getOption(TR_ProcessHugeMethods))
-         {
-         static char *dontAcceptHugeMethods = feGetEnv("TR_DontAcceptHugeMethods");
-         if (!dontAcceptHugeMethods)
-            {
-            options->setOption(TR_ProcessHugeMethods);
-            }
-         }   
+      }
    }
 
 void
