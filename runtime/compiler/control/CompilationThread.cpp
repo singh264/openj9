@@ -8792,9 +8792,9 @@ bool
 TR::CompilationInfoPerThreadBase::isOutOfProcessCompReq(TR::CompilationInfoPerThreadBase *compilationInfo)
    {
 #if defined(J9VM_OPT_JITSERVER)
-      return compilationInfo->_methodBeingCompiled->isOutOfProcessCompReq();
+   return compilationInfo->_methodBeingCompiled->isOutOfProcessCompReq();
 #endif /* defined(J9VM_OPT_JITSERVER) */
-      return false;
+   return false;
    }
 
 bool
