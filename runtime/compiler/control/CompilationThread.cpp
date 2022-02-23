@@ -8871,38 +8871,38 @@ TR::CompilationInfoPerThreadBase::addUpgradeHintInSCCIfNeeded(TR::CompilationInf
 TR_ResolvedMethod *
 TR::CompilationInfoPerThreadBase::createCompilee(TR::CompilationInfoPerThreadBase *compilationInfo, CompileParameters *compileParameters, TR::IlGeneratorMethodDetails &methodDetails, TR_FilterBST *&filterInfo)
    {
-      TR_ResolvedMethod  *compilee = 0;
-      TR_OpaqueMethodBlock *method = (TR_OpaqueMethodBlock *) methodDetails.getMethod();
-      TR_J9VMBase *vm = compileParameters->_vm;
+   TR_ResolvedMethod  *compilee = 0;
+   TR_OpaqueMethodBlock *method = (TR_OpaqueMethodBlock *) methodDetails.getMethod();
+   TR_J9VMBase *vm = compileParameters->_vm;
 
-      // Create the compilee
-      if (methodDetails.isMethodHandleThunk())
-         {
-         J9::MethodHandleThunkDetails &mhDetails = static_cast<J9::MethodHandleThunkDetails &>(methodDetails);
-         compilee = vm->createMethodHandleArchetypeSpecimen(compileParameters->trMemory(), method, mhDetails.getHandleRef());
-         TR_ASSERT(compilee, "Cannot queue a thunk compilation for a MethodHandle without a suitable archetype");
-         }
-      else if (methodDetails.isNewInstanceThunk())
-         {
-         J9::NewInstanceThunkDetails &niDetails = static_cast<J9::NewInstanceThunkDetails &>(methodDetails);
-         compilee = vm->createResolvedMethod(compileParameters->trMemory(), method, NULL, (TR_OpaqueClassBlock *) niDetails.classNeedingThunk());
-         }
-      else
-         {
-         compilee = vm->createResolvedMethod(compileParameters->trMemory(), method);
-         }
+   // Create the compilee
+   if (methodDetails.isMethodHandleThunk())
+      {
+      J9::MethodHandleThunkDetails &mhDetails = static_cast<J9::MethodHandleThunkDetails &>(methodDetails);
+      compilee = vm->createMethodHandleArchetypeSpecimen(compileParameters->trMemory(), method, mhDetails.getHandleRef());
+      TR_ASSERT(compilee, "Cannot queue a thunk compilation for a MethodHandle without a suitable archetype");
+      }
+   else if (methodDetails.isNewInstanceThunk())
+      {
+      J9::NewInstanceThunkDetails &niDetails = static_cast<J9::NewInstanceThunkDetails &>(methodDetails);
+      compilee = vm->createResolvedMethod(compileParameters->trMemory(), method, NULL, (TR_OpaqueClassBlock *) niDetails.classNeedingThunk());
+      }
+   else
+      {
+      compilee = vm->createResolvedMethod(compileParameters->trMemory(), method);
+      }
 
-      addUpgradeHintInSCCIfNeeded(compilationInfo, compilee, vm);
+   addUpgradeHintInSCCIfNeeded(compilationInfo, compilee, vm);
 
-      // See if this method can be compiled and check it against the method
-      // filters to see if compilation is to be suppressed.
-      if (isRestrictedMethod(compilationInfo, compilee, compileParameters, filterInfo) ||
-          isCodeOrDataCacheFull(compilationInfo, compileParameters))
-         {
-         compilee = 0;
-         }
+   // See if this method can be compiled and check it against the method
+   // filters to see if compilation is to be suppressed.
+   if (isRestrictedMethod(compilationInfo, compilee, compileParameters, filterInfo) ||
+       isCodeOrDataCacheFull(compilationInfo, compileParameters))
+      {
+      compilee = 0;
+      }
 
-      return compilee;
+   return compilee;
    }
 
 // static method
