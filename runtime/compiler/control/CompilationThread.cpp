@@ -7960,35 +7960,6 @@ TR::CompilationInfoPerThreadBase::compile(J9VMThread * vmThread,
    return startPC;
    }
 
-bool
-TR::CompilationInfoPerThreadBase::aotCompilationReUpgradedToWarm(CompilationInfoPerThreadBase *compilationInfo, CompileParameters *compileParameters, TR_OpaqueMethodBlock *method)
-   {
-   bool isAotCompilationReUpgradedToWarm = false;
-   if (compilationInfo->_methodBeingCompiled->_useAotCompilation)
-      {
-      // In some circumstances AOT compilations are performed at warm
-      if ((TR::Options::getCmdLineOptions()->getAggressivityLevel() == TR::Options::AGGRESSIVE_AOT ||
-           compilationInfo->getCompilationInfo()->importantMethodForStartup((J9Method*)method) ||
-            (!TR::Compiler->target.cpu.isPower() && // Temporary change until we figure out the AOT bug on PPC
-             !TR::Options::getAOTCmdLineOptions()->getOption(TR_DisableAotAtCheapWarm))) &&
-           compileParameters->_optimizationPlan->isOptLevelDowngraded() &&
-           compileParameters->_optimizationPlan->getOptLevel() == cold // Is this test really needed?
-#if defined(J9VM_OPT_JITSERVER)
-            // Do not reupgrade a compilation that was downgraded due to low memory
-            && (TR::Options::getCmdLineOptions()->getOption(TR_DisableJITServerBufferedExpensiveCompilations) ||
-                !compilationInfo->_methodBeingCompiled->shouldUpgradeOutOfProcessCompilation())
-#endif
-         )
-         {
-         compileParameters->_optimizationPlan->setOptLevel(warm);
-         compileParameters->_optimizationPlan->setOptLevelDowngraded(false);
-         isAotCompilationReUpgradedToWarm = true;
-         }
-      }
-
-      return isAotCompilationReUpgradedToWarm;
-   }
-
 void
 TR::CompilationInfoPerThreadBase::storeHintsInTheSCC(CompilationInfoPerThreadBase *compilationInfo, TR_J9VMBase *vm, TR_J9VMBase *fej9, TR_MethodMetaData *metaData, TR_CatchBlockProfileInfo *profileInfo, TR::SegmentAllocator &scratchSegmentProvider)
    {
@@ -8648,6 +8619,68 @@ TR::CompilationInfoPerThreadBase::tweakNonAotLoadCompilationStrategy(Compilation
    }
 
 void
+TR::CompilationInfoPerThreadBase::adjustOptionsForAotCompilation(bool isAotCompilationReUpgradedToWarm, TR_J9VMBase *vm, TR::Options *&options)
+   {
+   // Adjust Options for AOT compilation
+   if (vm->isAOT_DEPRECATED_DO_NOT_USE())
+      {
+      // Disable dynamic literal pool for AOT because of an unresolved data snippet patching issue in which
+      // the "Address Of Ref. Instruction" in the unresolved data snippet points to the wrong load instruction
+      options->setOption(TR_DisableOnDemandLiteralPoolRegister);
+
+      options->setOption(TR_DisableIPA);
+      options->setOption(TR_DisableEDO);
+      options->setDisabled(OMR::invariantArgumentPreexistence, true);
+      options->setOption(TR_DisableHierarchyInlining);
+      if (options->getInitialBCount() == 0 || options->getInitialCount() == 0)
+         options->setOption(TR_DisableDelayRelocationForAOTCompilations, true);
+
+      // Perform less inlining if we artificially upgraded this AOT compilation to warm
+      if (aotCompilationReUpgradedToWarm)
+         options->setInlinerOptionsForAggressiveAOT();
+
+      TR_ASSERT(vm->isAOT_DEPRECATED_DO_NOT_USE(), "assertion failure");
+
+      // Do not delay relocations for JITServer client when server side AOT caching is used (gives better performance)
+      // Testing the presence of the deserializer is sufficient, because the deserializer
+      // is only created at the client and only if server side AOT caching is enabled
+#if defined(J9VM_OPT_JITSERVER)
+      if (that->getCompilationInfo()->getJITServerAOTDeserializer())
+         options->setOption(TR_DisableDelayRelocationForAOTCompilations);
+#endif /* defined(J9VM_OPT_JITSERVER) */
+      }
+   }
+
+bool
+TR::CompilationInfoPerThreadBase::aotCompilationReUpgradedToWarm(CompilationInfoPerThreadBase *compilationInfo, CompileParameters *compileParameters, TR_OpaqueMethodBlock *method)
+   {
+   bool isAotCompilationReUpgradedToWarm = false;
+   if (compilationInfo->_methodBeingCompiled->_useAotCompilation)
+      {
+      // In some circumstances AOT compilations are performed at warm
+      if ((TR::Options::getCmdLineOptions()->getAggressivityLevel() == TR::Options::AGGRESSIVE_AOT ||
+           compilationInfo->getCompilationInfo()->importantMethodForStartup((J9Method*)method) ||
+            (!TR::Compiler->target.cpu.isPower() && // Temporary change until we figure out the AOT bug on PPC
+             !TR::Options::getAOTCmdLineOptions()->getOption(TR_DisableAotAtCheapWarm))) &&
+           compileParameters->_optimizationPlan->isOptLevelDowngraded() &&
+           compileParameters->_optimizationPlan->getOptLevel() == cold // Is this test really needed?
+#if defined(J9VM_OPT_JITSERVER)
+            // Do not reupgrade a compilation that was downgraded due to low memory
+            && (TR::Options::getCmdLineOptions()->getOption(TR_DisableJITServerBufferedExpensiveCompilations) ||
+                !compilationInfo->_methodBeingCompiled->shouldUpgradeOutOfProcessCompilation())
+#endif
+         )
+         {
+         compileParameters->_optimizationPlan->setOptLevel(warm);
+         compileParameters->_optimizationPlan->setOptLevelDowngraded(false);
+         isAotCompilationReUpgradedToWarm = true;
+         }
+      }
+
+      return isAotCompilationReUpgradedToWarm;
+   }
+
+void
 TR::CompilationInfoPerThreadBase::initializeNonOutOfProcessComp(CompilationInfoPerThreadBase *compilationInfo, TR_ResolvedMethod *compilee, CompileParameters *compileParameters, TR_FilterBST *filterInfo, TR::IlGeneratorMethodDetails &methodDetails, TR::Options *&options, bool &reducedWarm, TR_J9VMBase *vm)
    {
    J9VMThread *vmThread = compileParameters->_vmThread;
@@ -8718,11 +8751,16 @@ TR::CompilationInfoPerThreadBase::initializeNonOutOfProcessComp(CompilationInfoP
       options->setOption(TR_UseSymbolValidationManager, false);
       }
 
+   adjustOptionsForAotCompilation(isAotCompilationReUpgradedToWarm, vm, options);
+
    if (compilationInfo->_methodBeingCompiled->_optimizationPlan->disableCHOpts())
       options->disableCHOpts();
 
    if (compilationInfo->_methodBeingCompiled->_optimizationPlan->disableGCR())
       options->setOption(TR_DisableGuardedCountingRecompilations);
+
+   if (that->_methodBeingCompiled->_optimizationPlan->getDisableEDO())
+      options->setOption(TR_DisableEDO);
 
    if (options->getOption(TR_DisablePrexistenceDuringGracePeriod))
       {
