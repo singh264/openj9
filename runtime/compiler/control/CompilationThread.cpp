@@ -8768,23 +8768,23 @@ void
 TR::CompilationInfoPerThreadBase::initializeOutOfProcessComp(CompilationInfoPerThreadBase *compilationInfo, CompileParameters *compileParameters, TR_J9VMBase *vm, TR::Options *&options)
    {
 #if defined(J9VM_OPT_JITSERVER)
-      auto compInfoPTRemote = static_cast<TR::CompilationInfoPerThreadRemote *>(compilationInfo);
-      TR_ASSERT_FATAL(compInfoPTRemote->getClientOptions(), "client options must be set for an out-of-process compilation");
-      options = TR::Options::unpackOptions(compInfoPTRemote->getClientOptions(), compInfoPTRemote->getClientOptionsSize(), compilationInfo, vm, compileParameters->trMemory());
-      if (!compileParameters->_optimizationPlan->isLogCompilation())
-         {
-         options->setLogFileForClientOptions();
-         }
-      else
-         {
-         // For JitDump compilations, set the log file to the jitdump file,
-         // which has already been created by a thread running JitDump
-         TR::Options::findOrCreateDebug();
-         options->setLogFile(compileParameters->_optimizationPlan->getLogCompilation());
-         }
-      // The following is a hack to prevent the JITServer from allocating
-      // a sentinel entry for the list of runtime assumptions kept in the compiler object
-      options->setOption(TR_DisableFastAssumptionReclamation);
+   auto compInfoPTRemote = static_cast<TR::CompilationInfoPerThreadRemote *>(compilationInfo);
+   TR_ASSERT_FATAL(compInfoPTRemote->getClientOptions(), "client options must be set for an out-of-process compilation");
+   options = TR::Options::unpackOptions(compInfoPTRemote->getClientOptions(), compInfoPTRemote->getClientOptionsSize(), compilationInfo, vm, compileParameters->trMemory());
+   if (!compileParameters->_optimizationPlan->isLogCompilation())
+      {
+      options->setLogFileForClientOptions();
+      }
+   else
+      {
+      // For JitDump compilations, set the log file to the jitdump file,
+      // which has already been created by a thread running JitDump
+      TR::Options::findOrCreateDebug();
+      options->setLogFile(compileParameters->_optimizationPlan->getLogCompilation());
+      }
+   // The following is a hack to prevent the JITServer from allocating
+   // a sentinel entry for the list of runtime assumptions kept in the compiler object
+   options->setOption(TR_DisableFastAssumptionReclamation);
 #endif /* defined(J9VM_OPT_JITSERVER) */
    }
 
