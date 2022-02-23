@@ -8854,18 +8854,18 @@ TR::CompilationInfoPerThreadBase::isRestrictedMethod(TR::CompilationInfoPerThrea
 void
 TR::CompilationInfoPerThreadBase::addUpgradeHintInSCCIfNeeded(TR::CompilationInfoPerThreadBase *compilationInfo, TR_ResolvedMethod *compilee, TR_J9VMBase *vm)
    {
-      if (compilationInfo->_methodBeingCompiled->_optimizationPlan->isUpgradeRecompilation())
+   if (compilationInfo->_methodBeingCompiled->_optimizationPlan->isUpgradeRecompilation())
+      {
+      // TR_ASSERT(that->_methodBeingCompiled->_oldStartPC, "upgrade recompilations must have some oldstartpc");
+      // In JITServer mode, it doesn't have to.
+      TR_PersistentJittedBodyInfo *bodyInfo = ((TR_ResolvedJ9Method*)compilee)->getExistingJittedBodyInfo();
+      if (bodyInfo->getIsAotedBody() || bodyInfo->getHotness() <= cold)
          {
-         // TR_ASSERT(that->_methodBeingCompiled->_oldStartPC, "upgrade recompilations must have some oldstartpc");
-         // In JITServer mode, it doesn't have to.
-         TR_PersistentJittedBodyInfo *bodyInfo = ((TR_ResolvedJ9Method*)compilee)->getExistingJittedBodyInfo();
-         if (bodyInfo->getIsAotedBody() || bodyInfo->getHotness() <= cold)
-            {
-            TR_J9SharedCache *sc = (TR_J9SharedCache *) (vm->sharedCache());
-            if (sc)
-               sc->addHint(compilationInfo->_methodBeingCompiled->getMethodDetails().getMethod(), TR_HintUpgrade);
-            }
+         TR_J9SharedCache *sc = (TR_J9SharedCache *) (vm->sharedCache());
+         if (sc)
+            sc->addHint(compilationInfo->_methodBeingCompiled->getMethodDetails().getMethod(), TR_HintUpgrade);
          }
+      }
    }
 
 TR_ResolvedMethod *
