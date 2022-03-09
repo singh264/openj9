@@ -8977,15 +8977,6 @@ TR::CompilationInfoPerThreadBase::initializeOutOfProcessComp(CompilationInfoPerT
    }
 
 bool
-TR::CompilationInfoPerThreadBase::isOutOfProcessCompReq(TR::CompilationInfoPerThreadBase *compilationInfo)
-   {
-#if defined(J9VM_OPT_JITSERVER)
-   return compilationInfo->_methodBeingCompiled->isOutOfProcessCompReq();
-#endif /* defined(J9VM_OPT_JITSERVER) */
-   return false;
-   }
-
-bool
 TR::CompilationInfoPerThreadBase::isCodeOrDataCacheFull(TR::CompilationInfoPerThreadBase *compilationInfo, CompileParameters *compileParameters)
    {
    J9JITConfig *jitConfig = compilationInfo->_jitConfig;
@@ -9139,7 +9130,12 @@ TR::CompilationInfoPerThreadBase::wrappedCompile(J9PortLibrary *portLib, void * 
 
          TR_ASSERT(compileParameters->_optimizationPlan, "Must have an optimization plan");
 
-         if (isOutOfProcessCompReq(compilationInfo))
+         bool isOutOfProcessCompReq = false;
+#if defined(J9VM_OPT_JITSERVER)
+         isOutOfProcessCompReq = compilationInfo->_methodBeingCompiled->isOutOfProcessCompReq();
+#endif /* defined(J9VM_OPT_JITSERVER) */
+
+         if (isOutOfProcessCompReq)
             initializeOutOfProcessComp(compilationInfo, compileParameters, vm, options);
          else
             initializeNonOutOfProcessComp(compilationInfo, compilee, compileParameters, filterInfo, details, options, reducedWarm, vm);
