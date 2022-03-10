@@ -9001,7 +9001,7 @@ TR::CompilationInfoPerThreadBase::isCodeOrDataCacheFull(TR::CompilationInfoPerTh
    }
 
 bool
-TR::CompilationInfoPerThreadBase::isRestrictedMethod(TR::CompilationInfoPerThreadBase *compilationInfo, TR_ResolvedMethod *compilee, CompileParameters *compileParameters, TR_FilterBST *&filterInfo)
+TR::CompilationInfoPerThreadBase::isRestrictedMethod(TR::CompilationInfoPerThreadBase *compilationInfo, TR_ResolvedMethod *compilee, CompileParameters *compileParameters, TR_FilterBST *&filterInfo, TR_OpaqueMethodBlock *method)
    {
    TR_J9VMBase *vm = compileParameters->_vm;
    J9VMThread *vmThread = compileParameters->_vmThread;
@@ -9020,7 +9020,8 @@ TR::CompilationInfoPerThreadBase::isRestrictedMethod(TR::CompilationInfoPerThrea
       options = TR::Options::getAOTCmdLineOptions();
    if (options->getVerboseOption(TR_VerboseCompileExclude))
       {
-      TR_VerboseLog::writeLineLocked(TR_Vlog_COMPFAIL, "%s cannot be translated", compilee->signature(compileParameters->trMemory()));
+      TR_VerboseLog::writeLineLocked(TR_Vlog_COMPFAIL, "%s j9m=%p cannot be translated compThreadID=%d",
+                                     compilee->signature(compileParameters->trMemory()), method, compilationInfo->getCompThreadId());
       }
    Trc_JIT_noAttemptToJit(vmThread, compilee->signature(compileParameters->trMemory()));
 
@@ -9072,7 +9073,7 @@ TR::CompilationInfoPerThreadBase::createCompilee(TR::CompilationInfoPerThreadBas
 
    // See if this method can be compiled and check it against the method
    // filters to see if compilation is to be suppressed.
-   if (isRestrictedMethod(compilationInfo, compilee, compileParameters, filterInfo) ||
+   if (isRestrictedMethod(compilationInfo, compilee, compileParameters, filterInfo, method) ||
        isCodeOrDataCacheFull(compilationInfo, compileParameters))
       {
       compilee = 0;
