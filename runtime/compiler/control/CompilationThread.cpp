@@ -8272,6 +8272,13 @@ TR::CompilationInfoPerThreadBase::initializeCompiler(CompilationInfoPerThreadBas
          compiler->getOptions()->setBigCalleeScorchingOptThreshold(1024);
 #endif
          }
+      // Under -Xtune:throughput, increase the scratch space limit for hot/scorching compilations
+      else if (TR::Options::getAggressivityLevel() ==  TR::Options::TR_AggresivenessLevel::AGGRESSIVE_THROUGHPUT &&
+               compiler->getOptions()->getOptLevel() > warm &&
+               TR::Options::getScratchSpaceLimitForHotCompilations() > proposedScratchMemoryLimit) // Make sure we don't decrease the value proposed so far
+         {
+         proposedScratchMemoryLimit = TR::Options::getScratchSpaceLimitForHotCompilations();
+         }
 #if defined(J9VM_OPT_JITSERVER)
       else if (compiler->isOutOfProcessCompilation())
          {
