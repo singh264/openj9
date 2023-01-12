@@ -104,6 +104,9 @@ static int32_t minRepstosdWords = 0;
 #define MAX_ZERO_INIT_WORDS_PER_ITERATION 4
 static int32_t maxZeroInitWordsPerIteration = 0;
 
+#define OPT_DETAILS "O^O OUTLINED NEW: "
+#define OPT_DETAILS_TREE_EVALUATION "O^O TREE EVALUATION: "
+
 static bool getNodeIs64Bit(TR::Node *node, TR::CodeGenerator *cg);
 static TR::Register *intOrLongClobberEvaluate(TR::Node *node, bool nodeIs64Bit, TR::CodeGenerator *cg);
 
@@ -7689,7 +7692,7 @@ J9::X86::TreeEvaluator::VMnewEvaluator(
          }
       }
 
-   if (skipOutlineZeroInit && !performTransformation(comp, "O^O OUTLINED NEW: skip outlined zero init on %s %p\n", cg->getDebug()->getName(node), node))
+   if (skipOutlineZeroInit && !performTransformation(comp, "%sskip outlined zero init on %s %p\n", OPT_DETAILS, cg->getDebug()->getName(node), node))
       skipOutlineZeroInit = false;
 
    // Faster inlined sequence.  It does not understand arraylet shapes yet.
@@ -10130,7 +10133,7 @@ static int32_t byteOffsetForMask(int32_t mask, TR::CodeGenerator *cg)
       }
 
    if (result != -1
-      && performTransformation(cg->comp(), "O^O TREE EVALUATION: Use 1-byte TEST with offset %d for mask %08x\n", result, mask))
+      && performTransformation(cg->comp(), "%sUse 1-byte TEST with offset %d for mask %08x\n", OPT_DETAILS_TREE_EVALUATION, result, mask))
       return result;
 
    return -1;
