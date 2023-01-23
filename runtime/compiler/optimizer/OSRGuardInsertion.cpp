@@ -410,7 +410,7 @@ void TR_OSRGuardInsertion::removeHCRGuards(TR_BitVector &fearGeneratingNodes, TR
             && performTransformation(
                   comp(),
                   "%sremoving HCR guard merged into node n%un\n",
-                  OPT_DETAILS_GUARDED_CALL_REMAT,
+                  OPT_DETAILS,
                   node->getGlobalIndex()))
             {
             comp()->addClassForOSRRedefinition(guardInfo->getThisClass());
