@@ -846,7 +846,7 @@ J9::CodeGenerator::lowerTreeIfNeeded(
       TR::RecognizedMethod rm = node->getSymbol()->castToMethodSymbol()->getRecognizedMethod();
 
       if ((rm == TR::sun_misc_Unsafe_copyMemory || rm == TR::jdk_internal_misc_Unsafe_copyMemory0) &&
-            performTransformation(self()->comp(), "%sCall arraycopy instead of Unsafe.copyMemory for %s\n", OPT_DETAILS, self()->getDebug()->getName(node));
+            performTransformation(self()->comp(), "%sCall arraycopy instead of Unsafe.copyMemory for %s\n", OPT_DETAILS, self()->getDebug()->getName(node)))
          {
          TR::Node *src = node->getChild(1);
          TR::Node *srcOffset = node->getChild(2);
