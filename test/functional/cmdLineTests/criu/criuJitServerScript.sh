@@ -83,12 +83,12 @@ if [ "$JITSERVER_EXISTS" == 0 ]; then
 
     cat testOutput criuOutput;
 
-    if  [ "$KEEP_CHECKPOINT" != true ]; then
-        if [ "$KEEP_TEST_OUTPUT" != true ]; then
-            rm -rf testOutput criuOutput
-            echo "Removed test output files"
-        fi
-    fi
+    #if  [ "$KEEP_CHECKPOINT" != true ]; then
+    #    if [ "$KEEP_TEST_OUTPUT" != true ]; then
+    #        rm -rf testOutput criuOutput
+    #        echo "Removed test output files"
+    #    fi
+    #fi
 
     ps | grep $JITSERVER_PID | grep 'jitserver'
     JITSERVER_STILL_EXISTS=$?
