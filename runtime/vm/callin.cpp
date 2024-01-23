@@ -1393,7 +1393,7 @@ sidecarInvokeReflectConstructor(J9VMThread *currentThread, jobject constructorRe
 	VM_VMAccess::inlineExitVMToJNI(currentThread);
 }
 
-#if JAVA_SPEC_VERSION >= 16
+#if defined(J9VM_OPT_CRIU_SUPPORT) || JAVA_SPEC_VERSION >= 16
 bool
 buildCallInStackFrameHelper(J9VMThread *currentThread, J9VMEntryLocalStorage *newELS, bool returnsObject)
 {
@@ -1405,7 +1405,9 @@ restoreCallInFrameHelper(J9VMThread *currentThread)
 {
 	restoreCallInFrame(currentThread);
 }
+#endif /* defined(J9VM_OPT_CRIU_SUPPORT) || JAVA_SPEC_VERSION >= 16 */
 
+#if JAVA_SPEC_VERSION >= 16
 void JNICALL
 sendResolveUpcallInvokeHandle(J9VMThread *currentThread, J9UpcallMetaData *data)
 {

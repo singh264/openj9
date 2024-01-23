@@ -151,6 +151,18 @@ ffiCallWithSetJmpForUpcall(J9VMThread *currentThread, ffi_cif *cif, void *functi
 }
 #endif /* JAVA_SPEC_VERSION >= 16 */
 
+extern "C" {
+#if defined(OMR_GC_FULL_POINTERS)
+UDATA debugBytecodeLoopFull(J9VMThread *currentThread);
+#endif /* defined(OMR_GC_FULL_POINTERS) */
+#if defined(OMR_GC_COMPRESSED_POINTERS)
+UDATA debugBytecodeLoopCompressed(J9VMThread *currentThread);
+#endif /* defined(OMR_GC_COMPRESSED_POINTERS) */
+extern bool buildCallInStackFrameHelper(J9VMThread *currentThread, J9VMEntryLocalStorage *newELS, bool returnsObject);
+extern void c_cInterpreter(J9VMThread *currentThread);
+extern void restoreCallInFrameHelper(J9VMThread *currentThread);
+}
+
 class INTERPRETER_CLASS
 {
 /*
@@ -1490,6 +1502,9 @@ obj:
 			rc = HANDLE_POP_FRAMES;
 			break;
 #endif
+		case J9_CHECK_ASYNC_TRANSITION_TO_DEBUG_INTERPRETER:
+			rc = GOTO_TRANSITION_TO_DEBUG_INTERPRETER;
+			break;
 		default:
 			restoreSpecialStackFrameAndDrop(REGISTER_ARGS, _arg0EA + relativeBP);
 			if (inlFrame) {
@@ -9739,6 +9754,30 @@ done:
 	}
 #endif /* defined(J9VM_OPT_VALHALLA_VALUE_TYPES) */
 
+	VMINLINE VM_BytecodeAction
+	debugInterpreterTransition(REGISTER_ARGS_LIST)
+	{
+		VM_BytecodeAction rc = EXECUTE_BYTECODE;
+		J9VMEntryLocalStorage newELS;
+		VM_VMAccess::clearPublicFlagsNoMutex(_currentThread, J9_PUBLIC_FLAGS_TRANSITION_TO_DEBUG_INTERPRETER);
+		if (J9JAVAVM_COMPRESS_OBJECT_REFERENCES(_vm)) {
+#if defined(OMR_GC_COMPRESSED_POINTERS)
+			_vm->bytecodeLoop = debugBytecodeLoopCompressed;
+#endif /* defined(OMR_GC_COMPRESSED_POINTERS) */
+		} else {
+#if defined(OMR_GC_FULL_POINTERS)
+			_vm->bytecodeLoop = debugBytecodeLoopFull;
+#endif /* defined(OMR_GC_FULL_POINTERS) */
+		}
+		updateVMStruct(REGISTER_ARGS);
+		if (buildCallInStackFrameHelper(_currentThread, &newELS, false)) {
+			_currentThread->returnValue = J9_BCLOOP_RUN_METHOD;
+			c_cInterpreter(_currentThread);
+			restoreCallInFrameHelper(_currentThread);
+		}
+		return rc;
+	}
+
 protected:
 
 public:
@@ -10356,6 +10395,8 @@ public:
 			goto jni; \
 		case RUN_METHOD_COMPILED: \
 			goto i2j; \
+		case GOTO_TRANSITION_TO_DEBUG_INTERPRETER: \
+			goto transitionToDebugInterpreter; \
 		PERFORM_ACTION_VALUE_TYPE_IMSE \
 		PERFORM_ACTION_CRIU_STM_THROW \
 		DEBUG_ACTIONS \
@@ -11079,6 +11120,9 @@ arrayStoreException:
 	setCurrentExceptionUTF(_currentThread, J9VMCONSTANTPOOL_JAVALANGARRAYSTOREEXCEPTION, NULL);
 	VMStructHasBeenUpdated(REGISTER_ARGS);
 	goto throwCurrentException;
+
+transitionToDebugInterpreter:
+	PERFORM_ACTION(debugInterpreterTransition(REGISTER_ARGS));
 
 #if defined(DEBUG_VERSION)
 executeBreakpointedBytecode: {

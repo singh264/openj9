@@ -79,6 +79,11 @@ javaCheckAsyncMessages(J9VMThread *currentThread, UDATA throwExceptions)
 			internalAcquireVMAccessNoMutex(currentThread);
 			continue;
 		}
+		if (J9_ARE_ANY_BITS_SET(publicFlags, J9_PUBLIC_FLAGS_TRANSITION_TO_DEBUG_INTERPRETER)) {
+			VM_VMHelpers::indicateAsyncMessagePending(currentThread);
+			result = J9_CHECK_ASYNC_TRANSITION_TO_DEBUG_INTERPRETER;
+			break;
+		}
 		/* Check for stop request.  Do this last so that the currentException does not get a chance
 		 * to be overwritten when access is released.
 		 */

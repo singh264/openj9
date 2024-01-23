@@ -1438,6 +1438,26 @@ done:
 	return result;
 }
 
+static BOOLEAN
+transitionToDebugInterpreterIfNeeded(J9VMThread *currentThread)
+{
+	BOOLEAN result = TRUE;
+	J9JavaVM *vm = currentThread->javaVM;
+	if (NULL != vm->checkpointState.restoreArgsList) {
+		J9VMInitArgs *restoreArgsList = vm->checkpointState.restoreArgsList;
+		IDATA debugEnabled = FIND_AND_CONSUME_ARG(restoreArgsList, EXACT_MATCH, VMOPT_XDEBUG, NULL);
+		if (0 <= debugEnabled) {
+			J9VMThread *walkThread = J9_LINKED_LIST_START_DO(vm->mainThread);
+			while (NULL != walkThread) {
+				J9InternalVMFunctions *vmFuncs = vm->internalVMFunctions;
+				vmFuncs->setHaltFlag(walkThread, J9_PUBLIC_FLAGS_TRANSITION_TO_DEBUG_INTERPRETER);
+				walkThread = J9_LINKED_LIST_NEXT_DO(vm->mainThread, walkThread);
+			}
+		}
+	}
+	return result;
+}
+
 void JNICALL
 criuCheckpointJVMImpl(JNIEnv *env,
 		jstring imagesDir,
@@ -1807,6 +1827,15 @@ criuCheckpointJVMImpl(JNIEnv *env,
 			goto wakeJavaThreadsWithExclusiveVMAccess;
 		case RESTORE_ARGS_RETURN_OK:
 			break;
+		}
+
+		if (!transitionToDebugInterpreterIfNeeded(currentThread)) {
+			currentExceptionClass = vm->checkpointState.criuJVMRestoreExceptionClass;
+			nlsMsgFormat = j9nls_lookup_message(
+				J9NLS_DO_NOT_PRINT_MESSAGE_TAG | J9NLS_DO_NOT_APPEND_NEWLINE,
+				J9NLS_VM_CRIU_TRANSITION_TO_DEBUG_INTERPRETER_IF_NEEDED_FAILED,
+				NULL);
+			goto wakeJavaThreadsWithExclusiveVMAccess;
 		}
 
 		VM_VMHelpers::setVMState(currentThread, J9VMSTATE_CRIU_SUPPORT_RESTORE_PHASE_JAVA_HOOKS);
