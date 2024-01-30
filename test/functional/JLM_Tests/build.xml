@@ -88,11 +88,20 @@
 					<fileset dir="${LIB_DIR}/" includes="commons-exec.jar"/>
 				</path>
 				<if>
+					<not>
+						<contains string="${TEST_FLAG}" substring="CRAC" />
+					</not>
+					<then>
+						<property name="excludeTestCRaCMXBean" value="org/openj9/test/java/lang/management/TestCRaCMXBean.java" />
+					</then>
+				</if>
+				<if>
 					<matches string="${JDK_VERSION}" pattern="^(9|(1[0-8]))$$" />
 					<then>
 						<!-- Java 9-18 -->
 						<javac srcdir="${srcpath}" destdir="${build}" debug="true" fork="true" executable="${compiler.javac}" includeAntRuntime="false" encoding="ISO-8859-1" classpathref="build.cp">
 							<compilerarg line='${addExports} ${TestUtilitiesExports}' />
+							<exclude name="${excludeTestCRaCMXBean}" />
 						</javac>
 					</then>
 					<else>
@@ -102,6 +111,7 @@
 							<!-- exclude tests that depend on SecurityManager -->
 							<exclude name="org/openj9/test/java/lang/management/TestSharedClassMemoryMXBean_SM.java" />
 							<exclude name="org/openj9/test/java/lang/management/TestRegression_SM.java" />
+							<exclude name="${excludeTestCRaCMXBean}" />
 						</javac>
 					</else>
 				</if>
