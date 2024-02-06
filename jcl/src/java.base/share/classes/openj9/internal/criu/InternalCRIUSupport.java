@@ -231,7 +231,7 @@ public final class InternalCRIUSupport {
 
 	private static native String[] getRestoreSystemProperites();
 
-	static {
+	private static void initializeUnsafe() {
 		AccessController.doPrivileged((PrivilegedAction<Void>) () -> {
 			try {
 				Field f = Unsafe.class.getDeclaredField("theUnsafe"); //$NON-NLS-1$
@@ -875,6 +875,10 @@ public final class InternalCRIUSupport {
 
 						@SuppressWarnings("unchecked")
 						Map<String, String> newTheUnmodifiableEnvironment = (Map<String, String>) newStringEnvironment.newInstance(theEnvironment);
+
+						if (unsafe == null) {
+							initializeUnsafe();
+						}
 
 						unsafe.putObject(processEnvironmentClass, unsafe.staticFieldOffset(theUnmodifiableEnvironmentHandle),
 								Collections.unmodifiableMap(newTheUnmodifiableEnvironment));
