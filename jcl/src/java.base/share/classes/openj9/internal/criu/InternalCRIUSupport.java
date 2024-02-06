@@ -231,8 +231,9 @@ public final class InternalCRIUSupport {
 
 	private static native String[] getRestoreSystemProperites();
 
-	static {
-		AccessController.doPrivileged((PrivilegedAction<Void>) () -> {
+	private static class PrivilegedUnsafeAction implements PrivilegedAction<Void> {
+		@Override
+		public Void run() {
 			try {
 				Field f = Unsafe.class.getDeclaredField("theUnsafe"); //$NON-NLS-1$
 				f.setAccessible(true);
@@ -242,7 +243,11 @@ public final class InternalCRIUSupport {
 				throw new InternalError(e);
 			}
 			return null;
-		});
+		}
+	}
+
+	static {
+		AccessController.doPrivileged(new PrivilegedUnsafeAction());
 	}
 
 	/**
