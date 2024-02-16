@@ -231,9 +231,8 @@ public final class InternalCRIUSupport {
 
 	private static native String[] getRestoreSystemProperites();
 
-	private static class PrivilegedUnsafeAction implements PrivilegedAction<Void> {
-		@Override
-		public Void run() {
+	private static void initializeUnsafe() {
+		AccessController.doPrivileged((PrivilegedAction<Void>) () -> {
 			try {
 				Field f = Unsafe.class.getDeclaredField("theUnsafe"); //$NON-NLS-1$
 				f.setAccessible(true);
@@ -243,11 +242,7 @@ public final class InternalCRIUSupport {
 				throw new InternalError(e);
 			}
 			return null;
-		}
-	}
-
-	static {
-		AccessController.doPrivileged(new PrivilegedUnsafeAction());
+		});
 	}
 
 	/**
@@ -880,6 +875,10 @@ public final class InternalCRIUSupport {
 
 						@SuppressWarnings("unchecked")
 						Map<String, String> newTheUnmodifiableEnvironment = (Map<String, String>) newStringEnvironment.newInstance(theEnvironment);
+
+						if (unsafe == null) {
+							initializeUnsafe();
+						}
 
 						unsafe.putObject(processEnvironmentClass, unsafe.staticFieldOffset(theUnmodifiableEnvironmentHandle),
 								Collections.unmodifiableMap(newTheUnmodifiableEnvironment));
