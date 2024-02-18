@@ -809,6 +809,10 @@ public final class InternalCRIUSupport {
 			return;
 		}
 
+		if (unsafe == null) {
+			initializeUnsafe();
+		}
+
 		J9InternalCheckpointHookAPI.registerPostRestoreHook(HookMode.SINGLE_THREAD_MODE, RESTORE_ENVIRONMENT_VARIABLES_PRIORITY,
 				"Restore environment variables via env file: " + envFile, () -> { //$NON-NLS-1$
 					if (!Files.exists(this.envFile)) {
@@ -875,10 +879,6 @@ public final class InternalCRIUSupport {
 
 						@SuppressWarnings("unchecked")
 						Map<String, String> newTheUnmodifiableEnvironment = (Map<String, String>) newStringEnvironment.newInstance(theEnvironment);
-
-						if (unsafe == null) {
-							initializeUnsafe();
-						}
 
 						unsafe.putObject(processEnvironmentClass, unsafe.staticFieldOffset(theUnmodifiableEnvironmentHandle),
 								Collections.unmodifiableMap(newTheUnmodifiableEnvironment));
