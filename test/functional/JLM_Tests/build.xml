@@ -51,8 +51,11 @@
 			<then>
 				<property name="excludeTestCRaCMXBean" value="org/openj9/test/java/lang/management/TestCRaCMXBean.java"/>
 				<property name="replaceTestng" value="testng.xml" />
-				<exec executable="awk" input="${src}/../testng.xml" output="${build}/testng.xml">
-					<arg value="/&lt;test name=&quot;testCRaCMXBean&quot;&gt;/,/&lt;\/test&gt;/{next} 1"/>
+				<exec executable="python3">
+					<arg value="${src}/../testng_filter.py" />
+					<arg value="testCRaCMXBean" />
+					<arg value="${src}/../testng.xml" />
+					<redirector output="${build}/testng.xml" />
 				</exec>
 			</then>
 		</if>
