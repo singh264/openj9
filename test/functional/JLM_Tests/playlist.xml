@@ -1316,8 +1316,14 @@
 			<impl>ibm</impl>
 		</impls>
 	</test>
-		<test>
+	<test>
 		<testCaseName>testCRaCMXBean</testCaseName>
+		<disables>
+			<disable>
+				<comment>https://github.com/eclipse-openj9/openj9/issues/18842</comment>
+				<version>8</version>
+			</disable>
+		</disables>
 		<variations>
 			<variation>NoOptions</variation>
 		</variations>
