@@ -408,7 +408,7 @@ public class EnvVarFileTest {
 	}
 
 	static void testCheckTransitionToDebugInterpreterWithEnvVarFile() {
-		String optionsContents = RESTORE_ENV_VAR + "=-Xint";
+		String optionsContents = RESTORE_ENV_VAR + "=-XX:+DebugInterpreter";
 		Path optionsFilePath = CRIUTestUtils.createOptionsFile("options", optionsContents);
 		Path imagePath = Paths.get("cpData");
 		CRIUTestUtils.createCheckpointDirectory(imagePath);

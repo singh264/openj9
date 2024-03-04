@@ -336,7 +336,7 @@ public class OptionsFileTest {
 	}
 
 	static void testCheckTransitionToDebugInterpreterWithOptionsFile() {
-		String optionsContents = "-Xint";
+		String optionsContents = "-XX:+DebugInterpreter";
 		Path optionsFilePath = CRIUTestUtils.createOptionsFile("options", optionsContents);
 		Path imagePath = Paths.get("cpData");
 		CRIUTestUtils.createCheckpointDirectory(imagePath);

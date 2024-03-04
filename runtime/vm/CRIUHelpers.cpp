@@ -1475,8 +1475,14 @@ checkTransitionToDebugInterpreter(J9VMThread *currentThread)
 	J9JavaVM *vm = currentThread->javaVM;
 	if (NULL != vm->checkpointState.restoreArgsList) {
 		J9VMInitArgs *restoreArgsList = vm->checkpointState.restoreArgsList;
-		if (0 <= FIND_AND_CONSUME_ARG(restoreArgsList, EXACT_MATCH, VMOPT_XINT, NULL)) {
-			if (isDebugOnRestoreEnabled(currentThread)) {
+		IDATA debugOn = FIND_AND_CONSUME_ARG(restoreArgsList, EXACT_MATCH, VMOPT_XXDEBUGINTERPRETER, NULL);
+		IDATA debugOff = FIND_AND_CONSUME_ARG(restoreArgsList, EXACT_MATCH, VMOPT_XXNODEBUGINTERPRETER, NULL);
+		if (debugOn > debugOff) {
+			/*
+			 * The transition to the debug interpreter currently only works with -Xint,
+			 * and the null check for vm->jitConfig will be removed when the jit changes are completed.
+			 */
+			if (isDebugOnRestoreEnabled(currentThread) && vm->jitConfig == NULL) {
 				transitionToDebugInterpreter(vm);
 			} else {
 				result = FALSE;
