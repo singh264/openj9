@@ -3329,12 +3329,14 @@ modifyDllLoadTable(J9JavaVM * vm, J9Pool* loadTable, J9VMInitArgs* j9vm_args)
 		}
 #endif
 
-		if (strcmp(testString, VMOPT_XINT)==0) {
-			if (xjit || xnojit || xnoaot || xaot) {
-				SET_FLAG_AT_INDEX( NOT_CONSUMABLE_ARG, i );
-			} else {
-				xint = TRUE;
-			}
+		//if (strcmp(testString, VMOPT_XINT)==0) {
+		if (TRUE) {
+			//if (xjit || xnojit || xnoaot || xaot) {
+			//	SET_FLAG_AT_INDEX( NOT_CONSUMABLE_ARG, i );
+			//} else {
+			//	xint = TRUE;
+			//}
+			xint = TRUE;
 		} else if ((strcmp(testString, VMOPT_XJIT)==0) ||
 					(strstr(testString, VMOPT_XJIT_COLON)==testString)) {
 			if (xint || xnojit) {
