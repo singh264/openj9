@@ -1874,7 +1874,7 @@ retry:
 
 		/* ensure that the class is initialized */
 		if (declaringClass->initializeStatus != J9ClassInitSucceeded && declaringClass->initializeStatus != (UDATA) vmThread) {
-			gpCheckInitialize(vmThread, declaringClass);
+			gpCheckInitialize(vmThread, 0 == strcmp(name, "main") ? clazz : declaringClass);
 		}
 
 		if (vmThread->currentException == NULL) {
