@@ -4058,6 +4058,7 @@ processVMArgsFromFirstToLast(J9JavaVM * vm)
 
 	vm->checkpointState.lastRestoreTimeInNanoseconds = -1;
 	vm->checkpointState.processRestoreStartTimeInNanoseconds = -1;
+	vm->checkpointState.restoreTimestampsReady = FALSE;
 #endif /* defined(J9VM_OPT_CRIU_SUPPORT) */
 
 	{

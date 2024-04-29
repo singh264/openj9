@@ -279,7 +279,9 @@ public class TimeChangeTest {
 		processRestoreStartTime = InternalCRIUSupport.getProcessRestoreStartTime();
 		long lastRestoreTime = InternalCRIUSupport.getLastRestoreTime();
 		long afterRestoreTime = TimeUtilities.getCurrentTimeInNanoseconds();
-		if (beforeCheckpointTime >= processRestoreStartTime) {
+		if (!InternalCRIUSupport.getRestoreTimestampsReady()) {
+			System.out.println("FAILED: InternalCRIUSupport.getRestoreTimestampsReady() is false");
+		} else if (beforeCheckpointTime >= processRestoreStartTime) {
 			System.out.println("FAILED: InternalCRIUSupport.getProcessRestoreStartTime() - " + processRestoreStartTime
 					+ " is less than beforeCheckpointTime - " + beforeCheckpointTime);
 		} else if (processRestoreStartTime >= lastRestoreTime) {

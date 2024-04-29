@@ -1312,6 +1312,9 @@ jlong JNICALL
 Java_openj9_internal_criu_InternalCRIUSupport_getProcessRestoreStartTimeImpl(JNIEnv *env, jclass unused);
 
 jboolean JNICALL
+Java_openj9_internal_criu_InternalCRIUSupport_getRestoreTimestampsReadyImpl(JNIEnv *env, jclass unused);
+
+jboolean JNICALL
 Java_openj9_internal_criu_InternalCRIUSupport_isCheckpointAllowedImpl(JNIEnv *env, jclass unused);
 
 jboolean JNICALL

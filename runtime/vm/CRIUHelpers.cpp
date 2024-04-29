@@ -1846,6 +1846,7 @@ criuCheckpointJVMImpl(JNIEnv *env,
 			 * some threads are waiting to be notified.
 			 */
 			hasDumpSucceeded = true;
+			vm->checkpointState.restoreTimestampsReady = FALSE;
 		}
 
 		if (hasDumpSucceeded) {
@@ -1897,6 +1898,8 @@ criuCheckpointJVMImpl(JNIEnv *env,
 			}
 			vm->checkpointState.processRestoreStartTimeInNanoseconds = (I_64)restoreNanoUTCTime;
 			Trc_VM_criu_process_restore_start_after_dump(currentThread, criuRestorePid, vm->checkpointState.processRestoreStartTimeInNanoseconds);
+			vm->checkpointState.restoreTimestampsReady = TRUE;
+			Trc_VM_criu_restore_restore_timestamps_ready_after_dump(currentThread);
 
 			/* Load restore arguments from restore file or env vars. */
 			switch (loadRestoreArguments(currentThread, optionsFileChars, envFileChars)) {

@@ -72,6 +72,7 @@ public final class InternalCRIUSupport {
 	private static native long getCheckpointRestoreNanoTimeDeltaImpl();
 	private static native long getLastRestoreTimeImpl();
 	private static native long getProcessRestoreStartTimeImpl();
+	private static native boolean getRestoreTimestampsReadyImpl();
 	private static native boolean isCRIUSupportEnabledImpl();
 	private static native boolean isCheckpointAllowedImpl();
 /*[IF CRAC_SUPPORT]*/
@@ -102,6 +103,9 @@ public final class InternalCRIUSupport {
 	 *         has not occurred.
 	 */
 	public static long getLastRestoreTime() {
+		while (!getRestoreTimestampsReady()) {
+			Thread.yield();
+		}
 		return getLastRestoreTimeImpl();
 	}
 
@@ -113,7 +117,22 @@ public final class InternalCRIUSupport {
 	 * @return the time in nanoseconds since the epoch, -1 if restore has not occurred.
 	 */
 	public static long getProcessRestoreStartTime() {
+		while (!getRestoreTimestampsReady()) {
+			Thread.yield();
+		}
 		return getProcessRestoreStartTimeImpl();
+	}
+
+	/**
+	 * Get the flag that ensures that the following restore timestamps have
+	 * been fully updated by the native code: {@link #getLastRestoreTime()}
+	 * and {@link #getProcessRestoreStartTime()}.
+	 *
+	 * @return true if the restore timestamps have been fully updated by the
+	 *         native code, false otherwise.
+	 */
+	public static boolean getRestoreTimestampsReady() {
+		return getRestoreTimestampsReadyImpl();
 	}
 
 	/**

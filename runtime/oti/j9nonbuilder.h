@@ -4324,6 +4324,7 @@ typedef struct J9CRIUCheckpointState {
 	I_64 checkpointRestoreTimeDelta;
 	I_64 lastRestoreTimeInNanoseconds;
 	I_64 processRestoreStartTimeInNanoseconds;
+	volatile BOOLEAN restoreTimestampsReady;
 	UDATA maxRetryForNotCheckpointSafe;
 	UDATA sleepMillisecondsForNotCheckpointSafe;
 	jclass criuJVMCheckpointExceptionClass;

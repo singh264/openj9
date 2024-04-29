@@ -55,6 +55,14 @@ Java_openj9_internal_criu_InternalCRIUSupport_getProcessRestoreStartTimeImpl(JNI
 }
 
 jboolean JNICALL
+Java_openj9_internal_criu_InternalCRIUSupport_getRestoreTimestampsReadyImpl(JNIEnv *env, jclass unused)
+{
+	J9VMThread *currentThread = (J9VMThread *)env;
+
+	return currentThread->javaVM->checkpointState.restoreTimestampsReady;
+}
+
+jboolean JNICALL
 Java_openj9_internal_criu_InternalCRIUSupport_isCheckpointAllowedImpl(JNIEnv *env, jclass unused)
 {
 	J9VMThread *currentThread = (J9VMThread *)env;
